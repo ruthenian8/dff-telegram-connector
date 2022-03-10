@@ -1,0 +1,2 @@
+df_engine>=0.8.1
+pytelegrambotapi>=4.4.0
