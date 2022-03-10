@@ -9,8 +9,8 @@ help:
 	@echo "make test: Run basic tests (not testing most integrations)"
 	@echo "make test-all: Run ALL tests (slow, closest to CI)"
 	@echo "make format: Run code formatters (destructive)"
-	@echo "make build_doc": Build Sphinx docs
-	@echo "make hooks": Register a git hook to lint the code on each commit
+	@echo "make build_doc: Build Sphinx docs"
+	@echo "make hooks: Register a git hook to lint the code on each commit"
 	@echo
 
 venv:
@@ -28,6 +28,7 @@ check: lint test
 .PHONY: check
 
 lint: venv
+	$(VENV_PATH)/bin/python -m flake8 --config=setup.cfg dff_telegram_connector/
 	@set -e && $(VENV_PATH)/bin/python -m black --exclude="setup\.py" --line-length=120 --check . || ( \
 		echo "================================"; \
 		echo "Bad formatting? Run: make format"; \
@@ -51,6 +52,6 @@ build_doc:
 
 hooks:
 	@git init .
-	@cp pre-commit.sh .git/hooks/
-	@chmod +x .git/hooks/pre-commit.sh
+	@mv pre-commit.sh .git/hooks/pre-commit
+	@chmod +x .git/hooks/pre-commit
 .PHONY: hooks
