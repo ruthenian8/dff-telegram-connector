@@ -52,6 +52,6 @@ build_doc:
 
 hooks:
 	@git init .
-	@mv pre-commit.sh .git/hooks/pre-commit
+	@cp pre-commit.sh .git/hooks/pre-commit
 	@chmod +x .git/hooks/pre-commit
 .PHONY: hooks
