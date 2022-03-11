@@ -5,8 +5,9 @@ import os
 from df_engine.core.keywords import RESPONSE, TRANSITIONS
 from df_engine.core import Context, Actor
 import df_engine.conditions as cnd
-
 from telebot import TeleBot
+
+from dff_telegram_connector.dff_telegram_connector import set_dff_handler
 
 plot = {
     "root": {
@@ -102,7 +103,7 @@ actor = Actor(plot, start_label=("root", "start"), fallback_label=("root", "fall
 
 if __name__ == "__main__":
     if "BOT_TOKEN" not in os.environ:
-        sys.stdout.write("BOT_TOKEN variable needs to be set to continue")
+        print("BOT_TOKEN variable needs to be set to continue")
         sys.exit(1)
 
     default_bot = TeleBot(os.environ["BOT_TOKEN"])
@@ -110,5 +111,5 @@ if __name__ == "__main__":
     try:
         bot.infinity_polling()
     except KeyboardInterrupt:
-        sys.stdout.write("Stopping bot")
+        print("Stopping bot")
         sys.exit(0)

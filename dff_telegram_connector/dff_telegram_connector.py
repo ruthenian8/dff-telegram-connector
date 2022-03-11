@@ -45,7 +45,7 @@ def set_dff_handler(
         ctx = actor(ctx)
         ctx.clear(hold_last_n_indexes=3)
         context_storage[uid] = ctx
-        return bot.reply_to(message, ctx.last_response)
+        return bot.send_message(message.chat.id, ctx.last_response)
 
     if reject_media:
 

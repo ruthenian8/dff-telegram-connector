@@ -11,8 +11,8 @@ from dff_telegram_connector.dff_telegram_connector import set_dff_handler
 sys.path.insert(0, "../")
 from examples.basic_bot import actor
 
-if "BOT_TOKEN" not in os.environ:
-    raise AssertionError("BOT_TOKEN variable needs to be set to continue")
+# if "BOT_TOKEN" not in os.environ:
+#     raise AssertionError("BOT_TOKEN variable needs to be set to continue")
 
 
 @pytest.fixture(scope="session")
