@@ -1,18 +1,35 @@
 #!/usr/bin/python
 import sys
 import os
+from typing import Callable
 
 from df_engine.core.keywords import RESPONSE, TRANSITIONS
 from df_engine.core import Context, Actor
 import df_engine.conditions as cnd
 from telebot import TeleBot
+from telebot import types
 
-from dff_telegram_connector.dff_telegram_connector import set_dff_handler
+from dff_telegram_connector.dff_connector import DffTeleBot
+
+
+def example_telebot_response(ctx: Context, actor: Actor) -> Callable:
+    def response(bot: TeleBot, message: types.Message):
+        bot.send_message(message.chat.id, "Hello, world")
+
+    return response
+
+
+def other_telebot_response(ctx: Context, actor: Actor) -> Callable:
+    def response(bot: TeleBot, message: types.Message):
+        bot.reply_to(message, "Oops, doing fallback transition")
+
+    return response
+
 
 plot = {
     "root": {
         "start": {
-            RESPONSE: "Hi",
+            RESPONSE: example_telebot_response,
             TRANSITIONS: {
                 ("small_talk", "ask_some_questions"): cnd.exact_match("hi"),
                 ("animals", "have_pets"): cnd.exact_match("i like animals"),
@@ -20,7 +37,7 @@ plot = {
                 ("news", "what_news"): cnd.exact_match("let's talk about news"),
             },
         },
-        "fallback": {RESPONSE: "Oops"},
+        "fallback": {RESPONSE: other_telebot_response},
     },
     "animals": {
         "have_pets": {RESPONSE: "do you have pets?", TRANSITIONS: {"what_animal": cnd.exact_match("yes")}},
@@ -101,13 +118,30 @@ plot = {
 
 actor = Actor(plot, start_label=("root", "start"), fallback_label=("root", "fallback"))
 
+connector = dict()
+
+bot = DffTeleBot(os.getenv("BOT_TOKEN", "SOMETOKEN"), actor=actor, db_connector=connector)
+
+
+@bot.message_handler(labels=[("root", "start"), ("root", "fallback")])
+@bot.apply_actor
+def callable_response_handler(message, data):
+    response = message.context.last_response
+    response(bot, message)
+
+
+@bot.message_handler(labels=("*",))
+@bot.apply_actor
+def text_response_handler(message, data):
+    response = message.context.last_response
+    bot.send_message(message.chat.id, response)
+
+
 if __name__ == "__main__":
     if "BOT_TOKEN" not in os.environ:
         print("BOT_TOKEN variable needs to be set to continue")
         sys.exit(1)
 
-    default_bot = TeleBot(os.environ["BOT_TOKEN"])
-    bot = set_dff_handler(bot=default_bot, actor=actor)
     try:
         bot.infinity_polling()
     except KeyboardInterrupt:

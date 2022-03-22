@@ -2,6 +2,7 @@
 *.egg-info/
 dist/
 venv/
+virtualenv/
 build/
 *__pycache__*
 *.idea/*

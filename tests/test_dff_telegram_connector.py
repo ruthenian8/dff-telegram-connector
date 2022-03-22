@@ -1,22 +1,13 @@
 import pytest
+import sys
+
 from telebot import types
 from telebot import TeleBot
+from df_engine.core.context import Context
+
+sys.path.insert(0, "../")
+from examples.basic_bot import bot
 
 
-def test_stub(bot_instance):
-    assert isinstance(bot_instance, TeleBot)
-
-
-# def test_start(bot_instance, start_message):
-#     reply = bot_instance.start_handler(start_message)
-#     assert reply.text == "Welcome! Enjoy the conversation."
-
-
-# def test_dialog(bot_instance, dialog_message):
-#     reply = bot_instance.dialog_handler(dialog_message)
-#     assert reply.text == "Hi"
-
-
-# def test_document(bot_instance, doc_message):
-#     reply = bot_instance.any_handler(doc_message)
-#     assert reply.text == "I have trouble understanding media. Please, write me something."
+def test_stub():
+    assert isinstance(bot, TeleBot)

@@ -27,5 +27,8 @@ jobs:
           pip install -r requirements_test.txt
 
       - name: build coverage file
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          TEST_CHAT: ${{ secrets.TEST_CHAT }}
         run: |
-          pytest --cache-clear --cov-fail-under=50 --cov=dff-telegram-connector tests/ > pytest-coverage.txt
+          pytest --cache-clear --cov-fail-under=50 --cov=dff_telegram_connector tests > pytest-coverage.txt
