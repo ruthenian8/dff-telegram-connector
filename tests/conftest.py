@@ -6,8 +6,6 @@ import pytest
 from telebot import types
 from telebot import TeleBot
 
-from dff_telegram_connector.dff_handler import set_dff_handler
-
 # sys.path.insert(0, "../")
 # from examples.basic_bot import actor
 

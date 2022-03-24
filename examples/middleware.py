@@ -9,7 +9,7 @@ from df_engine.core.keywords import TRANSITIONS, RESPONSE, GLOBAL
 
 from telebot import types, logger
 
-from dff_telegram_connector.basic_connector import DffBot, get_chat_plus_user_id, content_type_media
+from dff_telegram_connector.basic_connector import DffBot, logger, content_type_media
 
 
 formatter = logging.Formatter(
@@ -26,15 +26,9 @@ connector = dict()
 # from dff_db_connector import SqlConnector
 # connector = SqlConnector("SOME_URI")
 
-bot = DffBot(os.getenv("BOT_TOKEN", "SOMETOKEN"), threaded=False)
+# When you pass `db_connector` to the costructor, it sets up middleware that retrieves and saves contexts automatically
+bot = DffBot(os.getenv("BOT_TOKEN", "SOMETOKEN"), db_connector=connector, threaded=False)
 
-plot: dict
-"""
-| The following example demonstrates that you can use any TeleBot condition inside your plot.
-| To achieve this, DffBot provides a cnd namespace with telebot handler equivalents. 
-| Thus, you can choose, which node to go to based on whether you've been sent a file or a particular command, etc.
-
-"""
 plot = {
     GLOBAL: {
         TRANSITIONS: {
@@ -96,31 +90,24 @@ actor = Actor(plot, start_label=("root", "start"), fallback_label=("root", "fall
 
 
 @bot.message_handler(func=lambda message: True, content_types=content_type_media)
-def dialog_handler(update):
+def dialog_handler(update, data: dict):
     """
     Standard handler that processes dff responses.
+    :param message: standard parameter for all telebot handlers
+    :param data: this parameter is essential to communicate with the middleware
     """
-    # retrieve or create a context for the user
-    chat_plus_user = get_chat_plus_user_id(update)
-    context: Context = connector.get(chat_plus_user, Context(id=chat_plus_user))
+    # retrieve the context from the middleware
+    context = data["context"]
 
-    # add newly received user data to the context
-    context.add_request(update.text if (hasattr(update, "text") and update.text) else "data")
-    context.misc["update"] = update  # this step is required for cnd_handler conditions to work
-
-    # apply the actor
     context = actor(context)
-    context.clear(hold_last_n_indexes=3)
-
-    # save the context
-    connector[chat_plus_user] = context
-
     response = context.last_response
+
     if isinstance(response, str):
         bot.send_message(update.chat.id, response)
-    # optionally provide conditions to use other response methods
-    # elif isinstance(response, bytes):
-    #     bot.send_document(update.chat.id, response)
+    # write some conditions to choose the response method
+
+    # pass the context back to the middleware
+    data["context"] = context
 
 
 if __name__ == "__main__":
