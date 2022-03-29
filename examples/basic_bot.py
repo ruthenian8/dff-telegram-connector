@@ -9,7 +9,7 @@ from df_engine.core.keywords import TRANSITIONS, RESPONSE, GLOBAL
 
 from telebot import types, logger
 
-from dff_telegram_connector.basic_connector import DffBot, get_chat_plus_user_id, content_type_media
+from dff_telegram_connector.basic_connector import DffBot, get_user_id, content_type_media, get_initial_context
 
 
 formatter = logging.Formatter(
@@ -32,7 +32,7 @@ plot: dict
 """
 | The following example demonstrates that you can use any TeleBot condition inside your plot.
 | To achieve this, DffBot provides a cnd namespace with telebot handler equivalents. 
-| Thus, you can choose, which node to go to based on whether you've been sent a file or a particular command, etc.
+| Thus, the Actor can choose, which node to go to, depending on whether the bot was sent a file or a particular command, etc.
 
 """
 plot = {
@@ -92,35 +92,53 @@ plot = {
     },
 }
 
-actor = Actor(plot, start_label=("root", "start"), fallback_label=("root", "fallback"))
+actor = Actor(plot, start_label=("root", "start"), fallback_label=("root", "fallback"), validation_stage=False)
 
 
+# The content_type parameter is set to the `content_type_media` constant, so that the bot can reply to images, stickers, etc.
 @bot.message_handler(func=lambda message: True, content_types=content_type_media)
 def dialog_handler(update):
     """
-    Standard handler that processes dff responses.
+    | Standard handler that replies with df_engine's :py:class:`~df_engine.core.Actor` responses.
+
+    | Since the logic of processing Telegram updates will be wholly handled by the :py:class:`~df_engine.core.Actor`,
+    | only one handler is sufficient to run the bot.
+    | If you need to need to process other updates in addition to messages,
+    | just stack the corresponding handler decorators on top of the function.
+
+    | The suggested way of extending the functionality is to expand the if-statement below.
+    | In doing so you will be able to send an arbitrary number of messages or files to the user
+    | depending on the type of response produced by the :py:class:`~df_engine.core.Actor`.
+    | For instance, when it returns a :py:class:`dict`, the keys can be mapped to different messaging methods.
+
+    Parameters
+    -----------
+
+    update: :py:class:`~telebot.types.JsonDeserializeable`
+        Any Telegram update. What types you process depends on the decorators you stack upon the handler.
+
     """
     # retrieve or create a context for the user
-    chat_plus_user = get_chat_plus_user_id(update)
-    context: Context = connector.get(chat_plus_user, Context(id=chat_plus_user))
+    user_id = get_user_id(update)
+    context: Context = connector.get(user_id, get_initial_context(user_id))
 
     # add newly received user data to the context
     context.add_request(update.text if (hasattr(update, "text") and update.text) else "data")
-    context.misc["update"] = update  # this step is required for cnd_handler conditions to work
+    context.misc["TELEGRAM_CONNECTOR"]["data"] = update  # this step is required for cnd_handler conditions to work
 
     # apply the actor
-    context = actor(context)
-    context.clear(hold_last_n_indexes=3)
+    updated_context = actor(context)
+    updated_context.clear(hold_last_n_indexes=3)
 
-    # save the context
-    connector[chat_plus_user] = context
-
-    response = context.last_response
+    response = updated_context.last_response
     if isinstance(response, str):
-        bot.send_message(update.chat.id, response)
+        bot.send_message(update.from_user.id, response)
     # optionally provide conditions to use other response methods
     # elif isinstance(response, bytes):
-    #     bot.send_document(update.chat.id, response)
+    #     bot.send_document(update.from_user.id, response)
+
+    # save the context
+    connector[user_id] = updated_context
 
 
 if __name__ == "__main__":

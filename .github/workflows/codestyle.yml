@@ -19,5 +19,8 @@ jobs:
           if [ -f requirements_test.txt ]; then pip install -r requirements_test.txt; fi
 
       - name: run codestyle
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          TEST_CHAT: ${{ secrets.TEST_CHAT }}      
         run: |
           black --line-length=120 --check .

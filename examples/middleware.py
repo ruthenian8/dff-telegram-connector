@@ -93,8 +93,16 @@ actor = Actor(plot, start_label=("root", "start"), fallback_label=("root", "fall
 def dialog_handler(update, data: dict):
     """
     Standard handler that processes dff responses.
-    :param message: standard parameter for all telebot handlers
-    :param data: this parameter is essential to communicate with the middleware
+
+    Parameters
+    -----------
+
+    update: :py:class:`~telebot.types.JsonDeserializeable`
+        Any Telegram update. What types you process depends on the decorators you stack upon the handler.
+
+    data: dict
+        This parameter is used to exchange data with the middleware. `context` key should be set to the modified context at the end of the handler function.
+
     """
     # retrieve the context from the middleware
     context = data["context"]
@@ -103,7 +111,7 @@ def dialog_handler(update, data: dict):
     response = context.last_response
 
     if isinstance(response, str):
-        bot.send_message(update.chat.id, response)
+        bot.send_message(update.from_user.id, response)
     # write some conditions to choose the response method
 
     # pass the context back to the middleware

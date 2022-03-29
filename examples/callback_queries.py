@@ -10,8 +10,7 @@ from df_engine.core.keywords import TRANSITIONS, RESPONSE, GLOBAL
 
 from telebot import types, logger
 
-from dff_telegram_connector.basic_connector import DffBot, get_chat_plus_user_id, content_type_media
-
+from dff_telegram_connector.basic_connector import DffBot, get_user_id, content_type_media, get_initial_context
 
 formatter = logging.Formatter(
     "[%(asctime)s] %(thread)d {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s", "%m-%d %H:%M:%S"
@@ -78,19 +77,19 @@ def get_markup(data: Optional[dict]):
 @bot.message_handler(func=lambda msg: True, content_types=content_type_media)
 def handler(update: Any):
     # retrieve or create a context for the user
-    chat_plus_user = get_chat_plus_user_id(update)
-    context: Context = connector.get(chat_plus_user, Context(id=chat_plus_user))
+    user_id = get_user_id(update)
+    context: Context = connector.get(user_id, get_initial_context(user_id))
 
     # add newly received user data to the context
     context.add_request(update.text if (hasattr(update, "text") and update.text) else "data")
-    context.misc["update"] = update  # this step is required for cnd handlers to work
+    context.misc["TELEGRAM_CONNECTOR"]["data"] = update  # this step is required for cnd handlers to work
 
     # apply the actor
     context = actor(context)
     context.clear(hold_last_n_indexes=3)
 
     # save the context
-    connector[chat_plus_user] = context
+    connector[user_id] = context
 
     response = context.last_response
     if isinstance(response, str):
