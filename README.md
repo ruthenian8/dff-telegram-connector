@@ -10,9 +10,9 @@ In this module, we introduce support for pytelegrambotapi-style conditions which
 Working examples can be found in the [examples directory](https://github.com/ruthenian8/dff-telegram-connector/tree/main/examples).
 
 <!-- [![Documentation Status](https://dff-telegram-connector.readthedocs.io/en/stable/?badge=stable)](https://readthedocs.org/projects/dff-telegram-connector/badge/?version=stable) -->
-<!-- [![Coverage Status](https://coveralls.io/repos/github/ruthenian8/dialog_flow_engine/badge.svg?branch=main)](https://coveralls.io/github/deepmipt/dialog_flow_engine?branch=main) -->
-<!-- [![Codestyle](https://github.com/ruthenian8/dff-telegram-connector/workflows/codestyle/badge.svg)](https://github.com/ruthenian8/dff-telegram-connector)
-[![Tests](https://github.com/ruthenian8/dff-telegram-connector/workflows/test_coverage/badge.svg)](https://github.com/ruthenian8/dff-telegram-connector) -->
+<!-- [![Coverage Status](https://coveralls.io/repos/github/ruthenian8/dff-telegram-connector/badge.svg?branch=main)](https://coveralls.io/github/deepmipt/dialog_flow_engine?branch=main) -->
+[![Codestyle](https://github.com/ruthenian8/dff-telegram-connector/workflows/codestyle/badge.svg)](https://github.com/ruthenian8/dff-telegram-connector)
+[![Tests](https://github.com/ruthenian8/dff-telegram-connector/workflows/test_coverage/badge.svg)](https://github.com/ruthenian8/dff-telegram-connector)
 [![License Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/ruthenian8/dff-telegram-connector/blob/main/LICENSE)
 ![Python 3.6, 3.7, 3.8, 3.9](https://img.shields.io/badge/python-3.6%20%7C%203.7%20%7C%203.8%20%7C%203.9-green.svg)
 <!-- [![PyPI](https://img.shields.io/pypi/v/dff-telegram-connector)](https://pypi.org/project/dff-telegram-connector/)
@@ -26,7 +26,52 @@ pip install dff-telegram-connector
 
 ## Basic example
 ```python
+import os
 
+from df_engine.core.keywords import GLOBAL, TRANSITIONS, RESPONSE
+from df_engine.core import Context, Actor
+
+from dff_telegram_connector.basic_connector import DffBot
+
+db_connector=dict()
+
+bot = DffBot(os.getenv("BOT_TOKEN"), db_connector=db_connector)
+
+# create dialog plot
+plot = {
+    GLOBAL: {
+        TRANSITIONS: {
+            ("flow", "node_hi"): bot.cnd.message_handler(commands=["start"]), 
+            ("flow", "node_ok"): bot.cnd.message_handler(commands=["finish"])
+        }
+    },
+    "flow": {
+        "node_hi": {RESPONSE: "Hi!!!"},
+        "node_bye": {RESPONSE: "Bye!!!"},
+    },
+}
+
+actor = Actor(plot, start_label=("root", "start"), fallback_label=("root", "fallback"))
+
+
+@bot.message_handler(func=lambda message: True)
+def dialog_handler(update, data: dict):
+    # retrieve the saved context or create a new one
+    context = data["context"]
+
+    context = actor(context)
+    response = context.last_response
+
+    if isinstance(response, str):
+        bot.send_message(update.from_user.id, response)
+    # write some conditions to choose an alternative response method
+
+    # update the `context` key in `data` to save changes to the state
+    data["context"] = context
+
+
+if __name__ == "__main__":
+    bot.infinity_polling()
 ```
 
 To get some of the more advanced examples, take a look at [examples](https://github.com/ruthenian8/dff-telegram-connector/tree/main/examples) on GitHub.

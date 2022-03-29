@@ -8,8 +8,9 @@ from df_engine.core import Context, Actor
 from df_engine.core.keywords import TRANSITIONS, RESPONSE, GLOBAL
 
 from telebot import types, logger
+from telebot.util import content_type_media
 
-from dff_telegram_connector.basic_connector import DffBot, logger, content_type_media
+from dff_telegram_connector.basic_connector import DffBot
 
 
 formatter = logging.Formatter(
@@ -98,7 +99,7 @@ def dialog_handler(update, data: dict):
     -----------
 
     update: :py:class:`~telebot.types.JsonDeserializeable`
-        Any Telegram update. What types you process depends on the decorators you stack upon the handler.
+        Any Telegram update. What types you process depends on what decorators you stack upon the handler.
 
     data: dict
         This parameter is used to exchange data with the middleware. `context` key should be set to the modified context at the end of the handler function.

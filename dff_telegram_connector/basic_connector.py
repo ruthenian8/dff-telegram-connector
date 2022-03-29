@@ -12,11 +12,11 @@ from functools import partialmethod
 
 from telebot import types, TeleBot, logger
 from telebot.handler_backends import BaseMiddleware
-from telebot.util import update_types, content_type_media
+from telebot.util import update_types
 
 from df_engine.core import Context, Actor
 
-from .utils import get_initial_context, get_user_id
+from .utils import get_initial_context, get_user_id, set_state
 
 
 class DffBot(TeleBot):
@@ -52,7 +52,9 @@ class CndNamespace:
     To set a condition in your plot, stick to the signature of the original :py:class:`~telebot.TeleBot` methods.
     E. g. the result of
 
-    .. py:method:: bot.cnd.message_handler(func=lambda msg: True)
+    .. code-block:: python
+
+        bot.cnd.message_handler(func=lambda msg: True)
 
     in your :py:class:`~df_engine.core.Plot` will always be `True`, unless the new update is not a message.
 
@@ -98,15 +100,15 @@ class CndNamespace:
 
     edited_channel_post_handler = partialmethod(handler, target_type=types.Message)
 
-    inline_handler = partialmethod(handler, types.InlineQuery)
+    inline_handler = partialmethod(handler, target_type=types.InlineQuery)
 
-    chosen_inline_handler = partialmethod(handler, types.ChosenInlineResult)
+    chosen_inline_handler = partialmethod(handler, target_type=types.ChosenInlineResult)
 
-    callback_query_handler = partialmethod(handler, types.CallbackQuery)
+    callback_query_handler = partialmethod(handler, target_type=types.CallbackQuery)
 
-    shipping_query_handler = partialmethod(handler, types.ShippingQuery)
+    shipping_query_handler = partialmethod(handler, target_type=types.ShippingQuery)
 
-    pre_checkout_query_handler = partialmethod(handler, types.PreCheckoutQuery)
+    pre_checkout_query_handler = partialmethod(handler, target_type=types.PreCheckoutQuery)
 
     poll_handler = partialmethod(handler, target_type=types.Poll)
 
@@ -116,7 +118,7 @@ class CndNamespace:
 
     my_chat_member_handler = partialmethod(handler, target_type=types.ChatMemberUpdated)
 
-    chat_join_request_handler = partialmethod(handler, types.ChatJoinRequest)
+    chat_join_request_handler = partialmethod(handler, target_type=types.ChatJoinRequest)
 
 
 class DatabaseMiddleware(BaseMiddleware):
@@ -135,14 +137,13 @@ class DatabaseMiddleware(BaseMiddleware):
     def pre_process(self, update, data: dict):
         user_id = get_user_id(update)
         context = self._connector.get(user_id, get_initial_context(user_id))
+        context = set_state(context, update)
 
-        context.add_request(update.text if (hasattr(update, "text") and update.text) else "data")
-        context.misc["TELEGRAM_CONNECTOR"]["data"] = update
         data["context"] = context
 
     def post_process(self, update, data: dict, exception=None):
         if exception:
             print(exception)
+
         user_id = get_user_id(update)
-        data["context"].clear(hold_last_n_indexes=3)
         self._connector[user_id] = data["context"]

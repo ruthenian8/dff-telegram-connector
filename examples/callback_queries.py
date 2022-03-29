@@ -2,15 +2,18 @@
 import os
 import sys
 import logging
-from typing import Optional, Any
+from typing import Optional
 
 import df_engine.conditions as cnd
 from df_engine.core import Context, Actor
 from df_engine.core.keywords import TRANSITIONS, RESPONSE, GLOBAL
 
 from telebot import types, logger
+from telebot.util import content_type_media
 
-from dff_telegram_connector.basic_connector import DffBot, get_user_id, content_type_media, get_initial_context
+from dff_telegram_connector.basic_connector import DffBot
+from dff_telegram_connector.utils import set_state, get_user_id, get_initial_context
+
 
 formatter = logging.Formatter(
     "[%(asctime)s] %(thread)d {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s", "%m-%d %H:%M:%S"
@@ -75,18 +78,17 @@ def get_markup(data: Optional[dict]):
 # of queries, you can stack decorators upon the main handler
 @bot.callback_query_handler(func=lambda call: True)
 @bot.message_handler(func=lambda msg: True, content_types=content_type_media)
-def handler(update: Any):
+def handler(update):
+
     # retrieve or create a context for the user
     user_id = get_user_id(update)
     context: Context = connector.get(user_id, get_initial_context(user_id))
 
     # add newly received user data to the context
-    context.add_request(update.text if (hasattr(update, "text") and update.text) else "data")
-    context.misc["TELEGRAM_CONNECTOR"]["data"] = update  # this step is required for cnd handlers to work
+    context = set_state(context, update)
 
     # apply the actor
     context = actor(context)
-    context.clear(hold_last_n_indexes=3)
 
     # save the context
     connector[user_id] = context

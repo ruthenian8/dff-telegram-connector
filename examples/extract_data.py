@@ -1,14 +1,18 @@
 #!/usr/bin/python
 import os
 import sys
+import logging
 
 from df_engine.core.keywords import RESPONSE, TRANSITIONS, GLOBAL
 from df_engine.core import Context, Actor
 from df_engine import conditions as cnd
 
-from telebot import types
+from telebot import types, logger
+from telebot.util import content_type_media
 
-from dff_telegram_connector.basic_connector import DffBot, get_user_id, content_type_media, get_initial_context
+from dff_telegram_connector.basic_connector import DffBot, get_user_id, get_initial_context
+from dff_telegram_connector.utils import set_state
+
 
 formatter = logging.Formatter(
     "[%(asctime)s] %(thread)d {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s", "%m-%d %H:%M:%S"
@@ -68,16 +72,13 @@ def extract_data(message):
 def handler(update):
     user_id = get_user_id(update)
     context: Context = connector.get(user_id, get_initial_context(user_id))
-
-    context.add_request(update.text if (hasattr(update, "text") and update.text) else "data")
-    context.misc["TELEGRAM_CONNECTOR"]["data"] = update  # this step is required for cnd_handler conditions to work
+    context = set_state(context, update)
 
     # Extract data if present
     if isinstance(update, types.Message):
         extract_data(update)
 
     context = actor(context)
-    context.clear(hold_last_n_indexes=3)
 
     connector[user_id] = context
 

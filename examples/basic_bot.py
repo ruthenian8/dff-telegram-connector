@@ -8,8 +8,10 @@ from df_engine.core import Context, Actor
 from df_engine.core.keywords import TRANSITIONS, RESPONSE, GLOBAL
 
 from telebot import types, logger
+from telebot.util import content_type_media
 
-from dff_telegram_connector.basic_connector import DffBot, get_user_id, content_type_media, get_initial_context
+from dff_telegram_connector.basic_connector import DffBot
+from dff_telegram_connector.utils import set_state, get_user_id, get_initial_context
 
 
 formatter = logging.Formatter(
@@ -92,7 +94,7 @@ plot = {
     },
 }
 
-actor = Actor(plot, start_label=("root", "start"), fallback_label=("root", "fallback"), validation_stage=False)
+actor = Actor(plot, start_label=("root", "start"), fallback_label=("root", "fallback"))
 
 
 # The content_type parameter is set to the `content_type_media` constant, so that the bot can reply to images, stickers, etc.
@@ -121,14 +123,11 @@ def dialog_handler(update):
     # retrieve or create a context for the user
     user_id = get_user_id(update)
     context: Context = connector.get(user_id, get_initial_context(user_id))
-
     # add newly received user data to the context
-    context.add_request(update.text if (hasattr(update, "text") and update.text) else "data")
-    context.misc["TELEGRAM_CONNECTOR"]["data"] = update  # this step is required for cnd_handler conditions to work
+    context = set_state(context, update)  # this step is required for cnd.%_handler conditions to work
 
     # apply the actor
     updated_context = actor(context)
-    updated_context.clear(hold_last_n_indexes=3)
 
     response = updated_context.last_response
     if isinstance(response, str):
