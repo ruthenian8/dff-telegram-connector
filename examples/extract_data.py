@@ -1,40 +1,33 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 import os
 import sys
-import logging
 
 from df_engine.core.keywords import RESPONSE, TRANSITIONS, GLOBAL
 from df_engine.core import Context, Actor
 from df_engine import conditions as cnd
 
-from telebot import types, logger
+from telebot import types
 from telebot.util import content_type_media
 
-from dff_telegram_connector.basic_connector import DffBot, get_user_id, get_initial_context
+from dff_telegram_connector.basic_connector import DFFBot, get_user_id, get_initial_context
 from dff_telegram_connector.utils import set_state
 
-
-formatter = logging.Formatter(
-    "[%(asctime)s] %(thread)d {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s", "%m-%d %H:%M:%S"
-)
-ch = logging.StreamHandler(sys.stdout)
-logger.handlers = []
-logger.addHandler(ch)
-logger.setLevel(logging.INFO)
-ch.setFormatter(formatter)
 
 connector = dict()
 # Optionally, you can use database connection implementations from the dff ecosystem.
 # from dff_db_connector import SqlConnector
 # connector = SqlConnector("SOME_URI")
 
-bot = DffBot(os.getenv("BOT_TOKEN", "SOMETOKEN"), threaded=False)
+bot = DFFBot(os.getenv("BOT_TOKEN", "SOMETOKEN"), threaded=False)
 
 plot = {
-    GLOBAL: {TRANSITIONS: {("docs", "ask_doc"): bot.cnd_handler(commands=["start"])}},
+    GLOBAL: {TRANSITIONS: {("docs", "ask_doc"): bot.cnd.message_handler(commands=["start"])}},
     "root": {
         "start": {RESPONSE: "", TRANSITIONS: {("docs", "ask_doc"): cnd.true()}},
-        "fallback": {RESPONSE: "Returned to fallback node, restarting", TRANSITIONS: {("root", "start"): cnd.true()}},
+        "fallback": {
+            RESPONSE: "Final node reached, send any message to restart.",
+            TRANSITIONS: {("docs", "ask_doc"): cnd.true()},
+        },
     },
     "docs": {
         "ask_doc": {
@@ -46,7 +39,7 @@ plot = {
         },
         "thank": {RESPONSE: "Got the doc, thanks", TRANSITIONS: {("root", "fallback"): cnd.true()}},
         "repeat": {
-            RESPONSE: "I cannot find the doc. please, try again",
+            RESPONSE: "I cannot find the doc. Please, try again.",
             TRANSITIONS: {
                 ("docs", "thank", 1.1): bot.cnd.message_handler(content_types=["document"]),
                 ("docs", "repeat", 0.9): cnd.true(),

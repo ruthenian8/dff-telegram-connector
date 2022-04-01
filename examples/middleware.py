@@ -1,26 +1,16 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 import os
 import sys
-import logging
 
 import df_engine.conditions as cnd
 from df_engine.core import Context, Actor
 from df_engine.core.keywords import TRANSITIONS, RESPONSE, GLOBAL
 
-from telebot import types, logger
+from telebot import types
 from telebot.util import content_type_media
 
-from dff_telegram_connector.basic_connector import DffBot
+from dff_telegram_connector.basic_connector import DFFBot
 
-
-formatter = logging.Formatter(
-    "[%(asctime)s] %(thread)d {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s", "%m-%d %H:%M:%S"
-)
-ch = logging.StreamHandler(sys.stdout)
-logger.handlers = []
-logger.addHandler(ch)
-logger.setLevel(logging.INFO)
-ch.setFormatter(formatter)
 
 connector = dict()
 # Optionally, you can use database connection implementations from the dff ecosystem.
@@ -28,7 +18,7 @@ connector = dict()
 # connector = SqlConnector("SOME_URI")
 
 # When you pass `db_connector` to the costructor, it sets up middleware that retrieves and saves contexts automatically
-bot = DffBot(os.getenv("BOT_TOKEN", "SOMETOKEN"), db_connector=connector, threaded=False)
+bot = DFFBot(os.getenv("BOT_TOKEN", "SOMETOKEN"), db_connector=connector, threaded=False)
 
 plot = {
     GLOBAL: {

@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.abspath("../.."))
 # -- Project information -----------------------------------------------------
 
 project = "Dff Telegram Connector"
-copyright = "Daniil Ignatiev"
+copyright = "Neural Networks and Deep Learning Lab, MIPT"
 author = "Daniil Ignatiev"
 
 # The full version, including alpha/beta/rc tags

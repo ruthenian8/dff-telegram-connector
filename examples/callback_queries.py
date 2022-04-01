@@ -1,35 +1,25 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 import os
 import sys
-import logging
 from typing import Optional
 
 import df_engine.conditions as cnd
 from df_engine.core import Context, Actor
 from df_engine.core.keywords import TRANSITIONS, RESPONSE, GLOBAL
 
-from telebot import types, logger
+from telebot import types
 from telebot.util import content_type_media
 
-from dff_telegram_connector.basic_connector import DffBot
+from dff_telegram_connector.basic_connector import DFFBot
 from dff_telegram_connector.utils import set_state, get_user_id, get_initial_context
 
-
-formatter = logging.Formatter(
-    "[%(asctime)s] %(thread)d {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s", "%m-%d %H:%M:%S"
-)
-ch = logging.StreamHandler(sys.stdout)
-logger.handlers = []
-logger.addHandler(ch)
-logger.setLevel(logging.INFO)
-ch.setFormatter(formatter)
 
 connector = dict()
 # Optionally, you can use database connection implementations from the dff ecosystem
 # from dff_db_connector import SqlConnector
 # connector = SqlConnector("SOME_URI")
 
-bot = DffBot(os.getenv("BOT_TOKEN", "SOMETOKEN"), threaded=False)
+bot = DFFBot(os.getenv("BOT_TOKEN", "SOMETOKEN"), threaded=False)
 
 plot = {
     GLOBAL: {TRANSITIONS: {("general", "keyboard"): bot.cnd.message_handler(commands=["start", "restart"])}},

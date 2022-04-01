@@ -1,5 +1,7 @@
-from telebot import types
+from functools import wraps
+from typing import Callable
 
+from telebot import types
 from df_engine.core import Context
 
 
@@ -42,3 +44,21 @@ def get_initial_context(user_id: str):
     ctx.misc.update({"TELEGRAM_CONNECTOR": {"keep_flag": True, "data": None}})
     assert "TELEGRAM_CONNECTOR" in ctx.misc
     return ctx
+
+
+def partialmethod(func: Callable, **part_kwargs):
+    """
+    This function replaces the partialmethod implementation from functools.
+    In contrast with the original class-based approach, it decorates the function, so we can use docstrings.
+    """
+
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        return func(self, *args, **part_kwargs, **kwargs)
+
+    wrapper.__doc__ = f"""
+    Creates a df_engine condition, triggered by update type {str(list(part_kwargs.values()))}. 
+    The signature is equal with the :py:class:`telebot.Telebot` method of the same name.
+    """
+
+    return wrapper

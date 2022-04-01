@@ -3,11 +3,21 @@
 
 [Dff Telegram Connector](https://github.com/ruthenian8/dff-telegram-connector) is an extension to the [Dialogflow Engine](https://github.com/deepmipt/dialog_flow_engine), a minimalistic open-source engine for conversational services.
 
-[Dff Telegram Connector](https://github.com/ruthenian8/dff-telegram-connector) is an adapter module that integrates `df_engine` and [pytelegrambotapi](https://github.com/eternnoir/pyTelegramBotAPI) library, a popular Python implementation of the Telegram Bot API. In combination, these two components make the development of conversational services for Telegram straightforward and intuitive.
+[Dff Telegram Connector](https://github.com/ruthenian8/dff-telegram-connector) is an adapter module that integrates `df_engine` and [pytelegrambotapi](https://github.com/eternnoir/pyTelegramBotAPI) library, a popular Python implementation of the Telegram Bot API. In combination, these two components make the development of conversational services for Telegram straightforward and intuitive: while `pytelegrambotapi` provides an interface to build FSM-based bots, its capabilities in this domain are somewhat limited. In contrast, combining `df_engine` with `pytelegrambotapi` offers a comprehensive way to define a Finite State Machine and wire it up with your bot. (For more information, see the [Dialogflow Engine](https://github.com/deepmipt/dialog_flow_engine) documentation.)
 
-In this module, we introduce support for pytelegrambotapi-style conditions which can process different kinds of updates that your service may receive from Telegram. Not only `messages`, but also `callback queries` and many more. All of those can now be handled by `df_engine's` `Actor` that will transition to the right part of the `Plot` depending on the conditions you choose.
+`DFFBot` class that we use inherits from `TeleBot`, which is why all the `TeleBot` methods are still available. You can use this class exactly like you've been using `TeleBot`, but with a number of small differences. 
 
-Working examples can be found in the [examples directory](https://github.com/ruthenian8/dff-telegram-connector/tree/main/examples).
+Inside the `cnd` subspace of the new class you will find some factory methods that create `df_engine`-style FSM transitions based on the updates that your service receives from Telegram: not only `messages`, but also `callback queries` and many more. All of those can now be handled by `df_engine's` `Actor` that will transition to the right part of the `Plot` depending on the conditions you choose. 
+
+For instance, the following construction in your `Plot` will ensure that the `Actor` transitions to the start node on each use of the "/start" command:
+
+```python
+TRANSITIONS: {("root", "start"): bot.cnd.message_handler(commands=["start"])}
+```
+
+As one can see from the example above, the name and signature of the method match those of the `TeleBot`.`message_handler` method, which is why you don't have to learn new things to make use of this feature.
+
+Full examples of working bots can be found in the [examples directory](https://github.com/ruthenian8/dff-telegram-connector/tree/main/examples).
 
 <!-- [![Documentation Status](https://dff-telegram-connector.readthedocs.io/en/stable/?badge=stable)](https://readthedocs.org/projects/dff-telegram-connector/badge/?version=stable) -->
 <!-- [![Coverage Status](https://coveralls.io/repos/github/ruthenian8/dff-telegram-connector/badge.svg?branch=main)](https://coveralls.io/github/deepmipt/dialog_flow_engine?branch=main) -->
@@ -18,7 +28,7 @@ Working examples can be found in the [examples directory](https://github.com/rut
 <!-- [![PyPI](https://img.shields.io/pypi/v/dff-telegram-connector)](https://pypi.org/project/dff-telegram-connector/)
 [![Downloads](https://pepy.tech/badge/dff-telegram-connector)](https://pepy.tech/project/dff-telegram-connector) -->
 
-# Quick Start
+# Quickstart
 ## Installation
 ```bash
 pip install dff-telegram-connector
@@ -37,7 +47,7 @@ db_connector=dict()
 
 bot = DffBot(os.getenv("BOT_TOKEN"), db_connector=db_connector)
 
-# create dialog plot
+# create a dialog plot (FSM prototype)
 plot = {
     GLOBAL: {
         TRANSITIONS: {
@@ -64,9 +74,9 @@ def dialog_handler(update, data: dict):
 
     if isinstance(response, str):
         bot.send_message(update.from_user.id, response)
-    # write some conditions to choose an alternative response method
+    # possibly, add some conditions to choose an alternative response method
 
-    # update the `context` key in `data` to save changes to the state
+    # update the `context` key in the `data` variable to save the new state
     data["context"] = context
 
 

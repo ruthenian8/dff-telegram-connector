@@ -2,13 +2,12 @@
 basic_connector
 -----------------
 
-| Basic connector module provides the :py:class:`~dff_telegram_connector.basic_connector.DffBot` class.
+| Basic connector module provides the :py:class:`~dff_telegram_connector.basic_connector.DFFBot` class.
 | It inherits from the :py:class:`~telebot.TeleBot` class from the :py:mod:`~pytelegrambotapi` library.
 | Using it, you can put Telegram update handlers inside your plot and condition your transitions on them.
 
 """
 from typing import MutableMapping, Any
-from functools import partialmethod
 
 from telebot import types, TeleBot, logger
 from telebot.handler_backends import BaseMiddleware
@@ -16,17 +15,18 @@ from telebot.util import update_types
 
 from df_engine.core import Context, Actor
 
-from .utils import get_initial_context, get_user_id, set_state
+from .utils import get_initial_context, get_user_id, set_state, partialmethod
 
 
-class DffBot(TeleBot):
+class DFFBot(TeleBot):
     """
 
     Parameters
     -----------
 
     db_connector: :py:class:`~typing.MutableMapping`
-        Any object that implements the :py:class:`dict` interface, e. g. setting, getting and deleting items.
+        | Any object that implements the :py:class:`dict` interface, e. g. setting, getting and deleting items.
+        | Note that this argument is keyword-only.
 
         | In the release version you will be able to use the dff-db-connector library that adapts many kinds of
         | database connectors to this interface.
@@ -46,7 +46,7 @@ class CndNamespace:
     """
     This class includes methods that produce df_engine conditions based on pytelegrambotapi updates.
 
-    It is included to the :py:class:`~dff_telegram_connector.basic_connector.DffBot` as :py:attr:`cnd` attribute.
+    It is included to the :py:class:`~dff_telegram_connector.basic_connector.DFFBot` as :py:attr:`cnd` attribute.
     This helps us avoid overriding the original methods.
 
     To set a condition in your plot, stick to the signature of the original :py:class:`~telebot.TeleBot` methods.
@@ -60,7 +60,7 @@ class CndNamespace:
 
     """
 
-    def __init__(self, bot: DffBot):
+    def __init__(self, bot: DFFBot):
         self.bot = bot
 
     def handler(
@@ -123,7 +123,7 @@ class CndNamespace:
 
 class DatabaseMiddleware(BaseMiddleware):
     """
-    | DatabaseMiddleware is an optional extension to the :py:class:`~dff_telegram_connector.basic_connector.DffBot`.
+    | DatabaseMiddleware is an optional extension to the :py:class:`~dff_telegram_connector.basic_connector.DFFBot`.
     | It encapsulates the context retrieval and context saving operations.
     | The context is passed to the decorated handler function with the :py:obj:`data` variable,
     | as suggested by the pytelegrambotapi documentation.
