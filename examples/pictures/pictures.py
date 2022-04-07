@@ -15,19 +15,6 @@ from dff_telegram_connector.basic_connector import DFFBot, get_user_id, get_init
 from dff_telegram_connector.utils import set_state
 
 
-# Tools for dynamic typing, like namedtuples or dataclasses, can be helpful if you need to use many kinds of responses.
-class ImageResponse(NamedTuple):
-    text: str
-    picture: bytes
-
-    def __deepcopy__(self, *args, **kwargs):
-        """
-        At the stage of plot validation, df_engine will try to pickle the responses you put in your plot.
-        Use this method to prevent that behaviour for objects that cannot be pickled, like bytes.
-        """
-        return copy(self)
-
-
 connector = dict()
 # Optionally, you can use database connection implementations from the dff ecosystem.
 # from dff_db_connector import SqlConnector
@@ -63,7 +50,7 @@ plot = {
             },
         },
         "thank": {
-            RESPONSE: ImageResponse(
+            RESPONSE: dict(
                 text="Nice! Here is my picture:",
                 picture=open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "kitten.jpg"), "rb").read(),
             ),
@@ -114,7 +101,7 @@ def handler(update):
     response = context.last_response
     if isinstance(response, str):
         bot.send_message(update.from_user.id, response)
-    elif isinstance(response, ImageResponse):
+    elif isinstance(response, dict):
         bot.send_message(update.from_user.id, response.text)
         bot.send_photo(update.from_user.id, response.picture)
 
