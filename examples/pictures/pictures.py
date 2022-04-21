@@ -52,7 +52,7 @@ plot = {
         "thank": {
             RESPONSE: dict(
                 text="Nice! Here is my picture:",
-                picture=open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "kitten.jpg"), "rb").read(),
+                picture=os.path.join(os.path.dirname(os.path.realpath(__file__)), "kitten.jpg"),
             ),
             TRANSITIONS: {("root", "fallback"): cnd.true()},
         },
@@ -77,11 +77,13 @@ actor = Actor(plot, start_label=("root", "start"), fallback_label=("root", "fall
 # you can always create a separate function that will take care of additional tasks.
 def extract_data(message):
     """A function to extract data with"""
-    if not message.photo:
+    photo = message.photo or message.document
+    if not photo:
         return
-    file_id = message.photo.file_id
-    file = bot.get_file(file_id)
-    bot.download_file(file.file_path)
+    file = bot.get_file(photo.file_id)
+    result = bot.download_file(file.file_path)
+    with open(photo.file_name, "wb+") as new_file:
+        new_file.write(result)
 
 
 @bot.message_handler(func=lambda msg: True, content_types=content_type_media)
@@ -102,8 +104,9 @@ def handler(update):
     if isinstance(response, str):
         bot.send_message(update.from_user.id, response)
     elif isinstance(response, dict):
-        bot.send_message(update.from_user.id, response.text)
-        bot.send_photo(update.from_user.id, response.picture)
+        bot.send_message(update.from_user.id, response.get("text"))
+        with open(response.get("picture"), "rb") as file:
+            bot.send_photo(update.from_user.id, file)
 
 
 if __name__ == "__main__":

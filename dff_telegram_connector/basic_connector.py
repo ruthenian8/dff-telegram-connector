@@ -7,7 +7,9 @@ basic_connector
 | Using it, you can put Telegram update handlers inside your plot and condition your transitions on them.
 
 """
-from typing import MutableMapping, Any
+from pathlib import Path
+from typing import MutableMapping, Any, Union
+from pydantic import BaseModel
 
 from telebot import types, TeleBot, logger
 from telebot.handler_backends import BaseMiddleware
@@ -16,6 +18,7 @@ from telebot.util import update_types
 from df_engine.core import Context, Actor
 
 from .utils import get_initial_context, get_user_id, set_state, partialmethod
+from .types import TelegramResponse, TelegramResource
 
 
 class DFFBot(TeleBot):
@@ -40,6 +43,32 @@ class DFFBot(TeleBot):
         self.cnd = CndNamespace(self)
         if use_middleware:
             self.setup_middleware(DatabaseMiddleware(self._connector))
+
+    def send_response(self, user_id: Union[str, int], *, response: BaseModel, gallery_type: type = None):
+        AdapterType = TelegramResponse[gallery_type] if gallery_type else TelegramResponse
+        adapted_response: TelegramResponse = AdapterType.parse_obj(response)
+        if gallery_type:
+            self.send_media_group(adapted_response.gallery.to_local())
+        media_fields = [
+            adapted_response.image,
+            adapted_response.audio,
+            adapted_response.video,
+            adapted_response.document,
+        ]
+
+        field: TelegramResource
+        for field in media_fields:
+
+            bot_method = getattr(self, field._bot_method)
+
+            if not isinstance(field.media, Path):
+                bot_method(user_id, field.media)
+                continue
+            if Path.exists(field.media):
+                with open(field.media, "rb") as file:
+                    bot_method(user_id, file)
+
+        self.send_message(user_id, adapted_response.text, reply_markup=adapted_response.ui.keyboard)
 
 
 class CndNamespace:
