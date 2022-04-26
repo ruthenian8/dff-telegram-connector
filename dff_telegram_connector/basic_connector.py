@@ -49,7 +49,7 @@ class DFFBot(TeleBot):
         if use_middleware:
             self.setup_middleware(DatabaseMiddleware(self._connector))
 
-    def send_response(self, chat_id: Union[str, int], *, response: Union[str, dict, BaseModel]):
+    def send_response(self, chat_id: Union[str, int], response: Union[str, dict, BaseModel]):
         """
         Cast the `response` argument to the :py:class:`~TelegramResponse` type and send it.
 
@@ -79,44 +79,28 @@ class DFFBot(TeleBot):
                 """
             )
 
-        image = ready_response.image
-        if image:
-            if isinstance(image.source, Path):
-                with open(image.source, "rb") as file:
-                    self.send_photo(chat_id=chat_id, photo=file)
+        for attachment_prop, method in [
+            (ready_response.image, self.send_photo),
+            (ready_response.video, self.send_video),
+            (ready_response.document, self.send_document),
+            (ready_response.audio, self.send_audio),
+        ]:
+            if attachment_prop is None:
+                continue
+            params = {"caption": attachment_prop.title}
+            if isinstance(attachment_prop.source, Path):
+                with open(attachment_prop.source, "rb") as file:
+                    method(chat_id, file, **params)
             else:
-                self.send_photo(chat_id=chat_id, photo=image.id or image.source)
-
-        video = ready_response.video
-        if video:
-            if isinstance(video.source, Path):
-                with open(video.source, "rb") as file:
-                    self.send_video(chat_id=chat_id, video=file)
-            else:
-                self.send_video(chat_id=chat_id, video=video.id or video.source)
-
-        document = ready_response.document
-        if document:
-            if isinstance(document.source, Path):
-                with open(document.source, "rb") as file:
-                    self.send_document(chat_id=chat_id, document=file)
-            else:
-                self.send_document(chat_id=chat_id, document=document.id or document.source)
-
-        audio = ready_response.audio
-        if audio:
-            if isinstance(audio.source, Path):
-                with open(audio.source, "rb") as file:
-                    self.send_audio(chat_id=chat_id, audio=file)
-            else:
-                self.send_audio(chat_id=chat_id, audio=audio.id or audio.source)
+                method(chat_id, attachment_prop.source or attachment_prop.id, **params)
 
         if ready_response.location:
             self.send_location(
                 chat_id=chat_id, latitude=ready_response.location.latitude, longitude=ready_response.location.longitude
             )
         if ready_response.attachments:
-            self.send_media_group(chat_id=chat_id, media=ready_response.attachments)
+            self.send_media_group(chat_id=chat_id, media=ready_response.attachments.files)
+            ready_response.attachments.close_descriptors()
 
         self.send_message(
             chat_id=chat_id, text=ready_response.text, reply_markup=ready_response.ui and ready_response.ui.keyboard

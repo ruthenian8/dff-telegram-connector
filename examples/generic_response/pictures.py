@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import sys
 
 import df_engine.conditions as cnd
 from df_engine.core import Context, Actor
@@ -9,7 +10,6 @@ from telebot.util import content_type_media
 from telebot import types
 
 from dff_telegram_connector.basic_connector import DFFBot
-from dff_telegram_connector.types import TelegramUI, TelegramButton
 
 from dff_generics import Response, Image, Attachments
 
@@ -105,4 +105,8 @@ def handler(update, data: dict):
 
 
 if __name__ == "__main__":
+    if "BOT_TOKEN" not in os.environ:
+        print("BOT_TOKEN variable needs to be set to continue")
+        sys.exit(1)
+
     bot.infinity_polling()

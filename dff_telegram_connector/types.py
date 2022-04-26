@@ -2,10 +2,13 @@
 Types
 ******
 
-This module implements  
+This module implements local classes for compatibility with `dff-generics` library.
+You can use :py:class:`~TelegramResponse` class directly with the `send_response` method
+that belongs to the :py:class:`basic_connector.DFFBot` class.
 """
 from typing import Any, List, Optional, Union
 from pathlib import Path
+from io import BytesIO
 
 from telebot import types
 from pydantic import BaseModel, ValidationError, validator, root_validator, Field, Extra, FilePath, HttpUrl
@@ -20,12 +23,13 @@ class AdapterModel(BaseModel):
     class Config:
         extra = Extra.ignore
         allow_population_by_field_name = True
+        arbitrary_types_allowed = True
 
 
 class TelegramButton(AdapterModel):
     text: str = Field(alias="text")
     url: Optional[str] = Field(default=None, alias="source")
-    callback_data: Optional[dict] = Field(default=None, alias="payload")
+    callback_data: Optional[str] = Field(default=None, alias="payload")
 
 
 class TelegramUI(AdapterModel):
@@ -36,7 +40,7 @@ class TelegramUI(AdapterModel):
 
     @root_validator
     def init_validator(cls, values: dict):
-        if isinstance(values["keyboard"], types.ReplyKeyboardRemove):  # no changes if buttons are not required
+        if values["keyboard"] is not None:  # no changes if buttons are not required
             return values
         if not values.get("buttons"):
             raise ValueError(
@@ -50,12 +54,12 @@ class TelegramUI(AdapterModel):
         else:
             keyboard = types.ReplyKeyboardMarkup(**kb_args)
             buttons = [types.KeyboardButton(text=item.text) for item in values["buttons"]]
-        keyboard.add(buttons, row_width=values["row_width"])
+        keyboard.add(*buttons, row_width=values["row_width"])
         values["keyboard"] = keyboard
         return values
 
 
-class TelegramAttachment(BaseModel):
+class TelegramAttachment(AdapterModel):
     source: Optional[Union[HttpUrl, FilePath]] = None
     id: Optional[str] = None  # id field is made separate to simplify validation.
     title: Optional[str] = None
@@ -75,37 +79,45 @@ class TelegramAttachment(BaseModel):
         return source
 
 
-class TelegramAttachments(BaseModel):
+class TelegramAttachments(AdapterModel):
     files: List[types.InputMedia] = Field(default_factory=list, min_items=2, max_items=10)
 
     @validator("files", pre=True, each_item=True, always=True)
     def cast_to_input_media(cls, file: Any):
         tg_cls = None
 
-        if dff_generics:  # convert generic classes to the corresponding InputMedia classes
-            if isinstance(file, dff_generics.Image):
-                tg_cls = types.InputMediaPhoto
-            elif isinstance(file, dff_generics.Audio):
-                tg_cls = types.InputMediaAudio
-            elif isinstance(file, dff_generics.Document):
-                tg_cls = types.InputMediaDocument
-            elif isinstance(file, dff_generics.Video):
-                tg_cls = types.InputMediaVideo
+        if isinstance(file, dff_generics.Image):
+            tg_cls = types.InputMediaPhoto
+        elif isinstance(file, dff_generics.Audio):
+            tg_cls = types.InputMediaAudio
+        elif isinstance(file, dff_generics.Document):
+            tg_cls = types.InputMediaDocument
+        elif isinstance(file, dff_generics.Video):
+            tg_cls = types.InputMediaVideo
 
         if tg_cls:
-            file = tg_cls(media=file.source or file.id, caption=file.title)
+            source = file.source
+            if isinstance(source, Path):
+                source = open(source, "rb")
+
+            file = tg_cls(media=source or file.id, caption=file.title)
 
         if isinstance(file, types.InputMedia):
             return file
         else:
             raise TypeError(
-                """`files` field can only hold InputMedia objects (pytelegrambotapi lib), 
+                """`files` field can only be set with InputMedia objects (pytelegrambotapi lib), 
                 or Image, Video, Audio or Document objects (dff_generics lib).
                 """
             )
 
+    def close_descriptors(self):
+        for file in self.files:
+            if isinstance(file.media, BytesIO):
+                file.media.close()
 
-class TelegramResponse(BaseModel):
+
+class TelegramResponse(AdapterModel):
     text: str = ...
     ui: Optional[TelegramUI] = None
     location: Optional[types.Location] = None

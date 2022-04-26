@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 import os
+import sys
 
 import df_engine.conditions as cnd
 from df_engine.core import Context, Actor
 from df_engine.core.keywords import TRANSITIONS, RESPONSE, GLOBAL
 
 from telebot.util import content_type_media
+from telebot import types
 
 from dff_telegram_connector.basic_connector import DFFBot
 from dff_telegram_connector.types import TelegramUI, TelegramButton
@@ -14,7 +16,7 @@ from dff_generics import Response, Keyboard, Button
 
 connector = dict()
 
-bot = DFFBot(os.getenv("BOT_TOKEN", "SOMETOKEN"), db_connector=connector, threaded=False)
+bot = DFFBot(token=os.environ["BOT_TOKEN"], db_connector=connector, threaded=False)
 
 
 plot = {
@@ -30,26 +32,29 @@ plot = {
     },
     # The reply below uses generic classes.
     # When creating a UI, you can use the generic Keyboard class.
-    # It does not have all the options that are available in Telegram, so default options will be applied
+    # It does not include all the options that are available in Telegram, so an InlineKeyboard will be created by default.
     "general": {
         "keyboard": {
             RESPONSE: Response(
                 **{
-                    "text": "Starting test! What's 6 * 8?",
+                    "text": "Starting test! What's 9 + 10?",
                     "ui": Keyboard(
                         buttons=[
-                            Button(text="48", payload="48"),
-                            Button(text="49", payload="49"),
+                            Button(text="19", payload="19"),
+                            Button(text="21", payload="21"),
                         ]
                     ),
                 }
             ),
             TRANSITIONS: {
-                ("general", "success"): bot.cnd.callback_query_handler(func=lambda call: call.data == "48"),
-                ("general", "native_keyboard"): bot.cnd.callback_query_handler(func=lambda call: call.data == "49"),
+                ("general", "native_keyboard"): bot.cnd.callback_query_handler(func=lambda call: call.data == "19"),
+                ("general", "fail"): bot.cnd.callback_query_handler(func=lambda call: call.data == "21"),
             },
         },
-        # otherwise, you can use the native TelegramUI class, that has more settings
+        # Otherwise, you can use the local TelegramUI class, that has more settings
+        # It can be used as an argument for the generic Response class.
+        # You can either instantiate a telebot keyboard yourself and pass it to TelegramUI as `keyboard`
+        # or just pass a list of buttons.
         "native_keyboard": {
             RESPONSE: Response(
                 **{
@@ -61,18 +66,26 @@ plot = {
                             TelegramButton(text="2", payload="2"),
                             TelegramButton(text="6", payload="6"),
                         ],
+                        is_inline=False,
                         row_width=4,
                     ),
                 }
             ),
             TRANSITIONS: {
-                ("general", "success"): bot.cnd.callback_query_handler(func=lambda call: call.data == "4"),
-                ("general", "fail"): bot.cnd.callback_query_handler(func=lambda call: call.data == "5"),
+                ("general", "success", 1.2): bot.cnd.message_handler(func=lambda msg: msg.text == "4"),
+                ("general", "fail", 1.0): cnd.true(),
             },
         },
-        "success": {RESPONSE: Response(text="Success!"), TRANSITIONS: {("root", "fallback"): cnd.true()}},
+        # if you want to remove the reply keyboard, pass an instance of telebot's ReplyKeyboardRemove
+        # to the TelegramUI class.
+        "success": {
+            RESPONSE: Response(**{"text": "Success!", "ui": TelegramUI(keyboard=types.ReplyKeyboardRemove())}),
+            TRANSITIONS: {("root", "fallback"): cnd.true()},
+        },
         "fail": {
-            RESPONSE: Response(text="Incorrect answer, try again"),
+            RESPONSE: Response(
+                **{"text": "Incorrect answer, try again", "ui": TelegramUI(keyboard=types.ReplyKeyboardRemove())}
+            ),
             TRANSITIONS: {("general", "keyboard"): cnd.true()},
         },
     },
@@ -97,4 +110,8 @@ def dialog_handler(update, data: dict):
 
 
 if __name__ == "__main__":
+    if "BOT_TOKEN" not in os.environ:
+        print("BOT_TOKEN variable needs to be set to continue")
+        sys.exit(1)
+
     bot.infinity_polling()

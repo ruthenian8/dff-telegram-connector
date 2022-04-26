@@ -91,4 +91,12 @@ def handler(update):
 
 
 if __name__ == "__main__":
-    bot.infinity_polling()
+    if "BOT_TOKEN" not in os.environ:
+        print("BOT_TOKEN variable needs to be set to continue")
+        sys.exit(1)
+
+    try:
+        bot.infinity_polling()
+    except KeyboardInterrupt:
+        print("Stopping bot")
+        sys.exit(0)
