@@ -8,7 +8,7 @@ basic_connector
 
 """
 from pathlib import Path
-from typing import MutableMapping, Any, Union
+from typing import MutableMapping, Union
 from pydantic import BaseModel
 
 from telebot import types, TeleBot, logger
@@ -18,7 +18,12 @@ from telebot.util import update_types
 from df_engine.core import Context, Actor
 
 from .utils import get_initial_context, get_user_id, set_state, partialmethod
-from .types import TelegramResponse, TelegramResource
+from .types import TelegramResponse
+
+try:
+    import dff_generics
+except (ImportError, ModuleNotFoundError):
+    dff_generics = None
 
 
 class DFFBot(TeleBot):
@@ -44,31 +49,78 @@ class DFFBot(TeleBot):
         if use_middleware:
             self.setup_middleware(DatabaseMiddleware(self._connector))
 
-    def send_response(self, user_id: Union[str, int], *, response: BaseModel, gallery_type: type = None):
-        AdapterType = TelegramResponse[gallery_type] if gallery_type else TelegramResponse
-        adapted_response: TelegramResponse = AdapterType.parse_obj(response)
-        if gallery_type:
-            self.send_media_group(adapted_response.gallery.to_local())
-        media_fields = [
-            adapted_response.image,
-            adapted_response.audio,
-            adapted_response.video,
-            adapted_response.document,
-        ]
+    def send_response(self, chat_id: Union[str, int], *, response: Union[str, dict, BaseModel]):
+        """
+        Cast the `response` argument to the :py:class:`~TelegramResponse` type and send it.
 
-        field: TelegramResource
-        for field in media_fields:
+        Parameters
+        -----------
+        chat_id: Union[str, int]
+            ID of the chat to send the response to
+        response: Union[str, dict, BaseModel]
+            Response data. Can be passed as a :py:class:`~str`, a :py:class:`~dict`, or a :py:class:`~dff_generics.Response`
+            which will then be used to instantiate a :py:class:`~TelegramResponse` object.
+            A :py:class:`~TelegramResponse` can also be passed directly.
+            Note, that the dict should implement the :py:class:`~TelegramResponse` schema.
 
-            bot_method = getattr(self, field._bot_method)
 
-            if not isinstance(field.media, Path):
-                bot_method(user_id, field.media)
-                continue
-            if Path.exists(field.media):
-                with open(field.media, "rb") as file:
-                    bot_method(user_id, file)
+        """
+        if isinstance(response, TelegramResponse):
+            ready_response = response
+        elif isinstance(response, str):
+            ready_response = TelegramResponse(text=response)
+        elif isinstance(response, dict) or (dff_generics and isinstance(response, dff_generics.Response)):
+            ready_response = TelegramResponse.parse_obj(response)
+        else:
+            raise TypeError(
+                """
+                Type of the response argument should be one of the following: 
+                str, dict, TelegramResponse, or dff_generics.Response
+                """
+            )
 
-        self.send_message(user_id, adapted_response.text, reply_markup=adapted_response.ui.keyboard)
+        image = ready_response.image
+        if image:
+            if isinstance(image.source, Path):
+                with open(image.source, "rb") as file:
+                    self.send_photo(chat_id=chat_id, photo=file)
+            else:
+                self.send_photo(chat_id=chat_id, photo=image.id or image.source)
+
+        video = ready_response.video
+        if video:
+            if isinstance(video.source, Path):
+                with open(video.source, "rb") as file:
+                    self.send_video(chat_id=chat_id, video=file)
+            else:
+                self.send_video(chat_id=chat_id, video=video.id or video.source)
+
+        document = ready_response.document
+        if document:
+            if isinstance(document.source, Path):
+                with open(document.source, "rb") as file:
+                    self.send_document(chat_id=chat_id, document=file)
+            else:
+                self.send_document(chat_id=chat_id, document=document.id or document.source)
+
+        audio = ready_response.audio
+        if audio:
+            if isinstance(audio.source, Path):
+                with open(audio.source, "rb") as file:
+                    self.send_audio(chat_id=chat_id, audio=file)
+            else:
+                self.send_audio(chat_id=chat_id, audio=audio.id or audio.source)
+
+        if ready_response.location:
+            self.send_location(
+                chat_id=chat_id, latitude=ready_response.location.latitude, longitude=ready_response.location.longitude
+            )
+        if ready_response.attachments:
+            self.send_media_group(chat_id=chat_id, media=ready_response.attachments)
+
+        self.send_message(
+            chat_id=chat_id, text=ready_response.text, reply_markup=ready_response.ui and ready_response.ui.keyboard
+        )
 
 
 class CndNamespace:

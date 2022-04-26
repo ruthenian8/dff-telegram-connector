@@ -21,7 +21,7 @@ venv:
 	$(VENV_PATH)/bin/pip install -e .
 
 format: venv
-	@$(VENV_PATH)/bin/python -m black --exclude="setup\.py" --line-length=120 .
+	@$(VENV_PATH)/bin/python -m black --exclude="setup\.py" --exclude="venv\/" --line-length=120 .
 .PHONY: format
 
 check: lint test
@@ -29,7 +29,7 @@ check: lint test
 
 lint: venv
 	$(VENV_PATH)/bin/python -m flake8 --config=setup.cfg dff_telegram_connector/
-	@set -e && $(VENV_PATH)/bin/python -m black --exclude="setup\.py" --line-length=120 --check . || ( \
+	@set -e && $(VENV_PATH)/bin/python -m black --exclude="setup\.py" --exclude="venv\/" --line-length=120 --check . || ( \
 		echo "================================"; \
 		echo "Bad formatting? Run: make format"; \
 		echo "================================"; \
