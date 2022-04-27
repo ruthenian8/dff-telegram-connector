@@ -1,5 +1,8 @@
 from functools import wraps
 from typing import Callable
+from pathlib import Path
+from io import IOBase
+from copy import copy
 
 from telebot import types
 from df_engine.core import Context
@@ -62,3 +65,17 @@ def partialmethod(func: Callable, **part_kwargs):
     """
 
     return wrapper
+
+
+def open_io(item: types.InputMedia):
+    """Returns a copy of InputMedia with an opened file descriptor instead of path"""
+    copied_item = copy(item)
+    if isinstance(copied_item.media, Path):
+        copied_item.media = copied_item.media.open(mode="rb")
+    return copied_item
+
+
+def close_io(item: types.InputMedia):
+    """Closes an IO in an InputMedia object to perform the cleanup"""
+    if isinstance(item.media, IOBase):
+        item.media.close()

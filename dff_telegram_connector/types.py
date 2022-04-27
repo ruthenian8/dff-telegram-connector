@@ -8,15 +8,11 @@ that belongs to the :py:class:`basic_connector.DFFBot` class.
 """
 from typing import Any, List, Optional, Union
 from pathlib import Path
-from io import BytesIO
 
 from telebot import types
 from pydantic import BaseModel, ValidationError, validator, root_validator, Field, Extra, FilePath, HttpUrl
 
-try:
-    import dff_generics
-except (ImportError, ModuleNotFoundError):
-    dff_generics = None
+import dff_generics
 
 
 class AdapterModel(BaseModel):
@@ -96,11 +92,7 @@ class TelegramAttachments(AdapterModel):
             tg_cls = types.InputMediaVideo
 
         if tg_cls:
-            source = file.source
-            if isinstance(source, Path):
-                source = open(source, "rb")
-
-            file = tg_cls(media=source or file.id, caption=file.title)
+            file = tg_cls(media=file.source or file.id, caption=file.title)
 
         if isinstance(file, types.InputMedia):
             return file
@@ -110,11 +102,6 @@ class TelegramAttachments(AdapterModel):
                 or Image, Video, Audio or Document objects (dff_generics lib).
                 """
             )
-
-    def close_descriptors(self):
-        for file in self.files:
-            if isinstance(file.media, BytesIO):
-                file.media.close()
 
 
 class TelegramResponse(AdapterModel):

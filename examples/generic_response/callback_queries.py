@@ -16,7 +16,7 @@ from dff_generics import Response, Keyboard, Button
 
 connector = dict()
 
-bot = DFFBot(token=os.environ["BOT_TOKEN"], db_connector=connector, threaded=False)
+bot = DFFBot(token=os.getenv("BOT_TOKEN", "SOMETOKEN"), db_connector=connector, threaded=False)
 
 
 plot = {

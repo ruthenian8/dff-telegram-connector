@@ -11,19 +11,16 @@ from pathlib import Path
 from typing import MutableMapping, Union
 from pydantic import BaseModel
 
-from telebot import types, TeleBot, logger
+from telebot import types, TeleBot
 from telebot.handler_backends import BaseMiddleware
 from telebot.util import update_types
 
 from df_engine.core import Context, Actor
 
-from .utils import get_initial_context, get_user_id, set_state, partialmethod
+from .utils import get_initial_context, get_user_id, set_state, partialmethod, open_io, close_io
 from .types import TelegramResponse
 
-try:
-    import dff_generics
-except (ImportError, ModuleNotFoundError):
-    dff_generics = None
+import dff_generics
 
 
 class DFFBot(TeleBot):
@@ -33,7 +30,7 @@ class DFFBot(TeleBot):
     -----------
 
     db_connector: :py:class:`~typing.MutableMapping`
-        | Any object that implements the :py:class:`dict` interface, e. g. setting, getting and deleting items.
+        | Any :py:class:`~typing.MutableMapping`-like object that supports setting, getting and deleting items.
         | Note that this argument is keyword-only.
 
         | In the release version you will be able to use the dff-db-connector library that adapts many kinds of
@@ -98,9 +95,12 @@ class DFFBot(TeleBot):
             self.send_location(
                 chat_id=chat_id, latitude=ready_response.location.latitude, longitude=ready_response.location.longitude
             )
+
         if ready_response.attachments:
-            self.send_media_group(chat_id=chat_id, media=ready_response.attachments.files)
-            ready_response.attachments.close_descriptors()
+            opened_media = [open_io(item) for item in ready_response.attachments.files]
+            self.send_media_group(chat_id=chat_id, media=opened_media)
+            for item in opened_media:
+                close_io(item)
 
         self.send_message(
             chat_id=chat_id, text=ready_response.text, reply_markup=ready_response.ui and ready_response.ui.keyboard
