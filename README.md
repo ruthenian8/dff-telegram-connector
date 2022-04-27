@@ -1,9 +1,9 @@
 
 # Dff Telegram Connector
 
-[Dff Telegram Connector](https://github.com/ruthenian8/dff-telegram-connector) is an extension to the [Dialogflow Engine](https://github.com/deepmipt/dialog_flow_engine), a minimalistic open-source engine for conversational services.
+[Dff Telegram Connector](https://github.com/ruthenian8/df-telegram-connector) is an extension to the [Dialogflow Engine](https://github.com/deepmipt/dialog_flow_engine), a minimalistic open-source engine for conversational services.
 
-[Dff Telegram Connector](https://github.com/ruthenian8/dff-telegram-connector) is an adapter module that integrates `df_engine` and [pytelegrambotapi](https://github.com/eternnoir/pyTelegramBotAPI) library, a popular Python implementation of the Telegram Bot API. In combination, these two components make the development of conversational services for Telegram straightforward and intuitive: while `pytelegrambotapi` provides an interface to build FSM-based bots, its capabilities in this domain are somewhat limited. In contrast, combining `df_engine` with `pytelegrambotapi` offers a comprehensive way to define a Finite State Machine and wire it up with your bot. (For more information, see the [Dialogflow Engine](https://github.com/deepmipt/dialog_flow_engine) documentation.)
+[Dff Telegram Connector](https://github.com/ruthenian8/df-telegram-connector) is an adapter module that integrates `df_engine` and [pytelegrambotapi](https://github.com/eternnoir/pyTelegramBotAPI) library, a popular Python implementation of the Telegram Bot API. In combination, these two components make the development of conversational services for Telegram straightforward and intuitive: while `pytelegrambotapi` provides an interface to build FSM-based bots, its capabilities in this domain are somewhat limited. In contrast, combining `df_engine` with `pytelegrambotapi` offers a comprehensive way to define a Finite State Machine and wire it up with your bot. (For more information, see the [Dialogflow Engine](https://github.com/deepmipt/dialog_flow_engine) documentation.)
 
 `DFFBot` class that we use inherits from `TeleBot`, which is why all the `TeleBot` methods are still available. You can use this class exactly like you've been using `TeleBot`, but with a number of small differences. 
 
@@ -17,21 +17,21 @@ TRANSITIONS: {("root", "start"): bot.cnd.message_handler(commands=["start"])}
 
 As one can see from the example above, the name and signature of the method match those of the `TeleBot`.`message_handler` method, which is why you don't have to learn new things to make use of this feature.
 
-Full examples of working bots can be found in the [examples directory](https://github.com/ruthenian8/dff-telegram-connector/tree/main/examples).
+Full examples of working bots can be found in the [examples directory](https://github.com/ruthenian8/df-telegram-connector/tree/main/examples).
 
-<!-- [![Documentation Status](https://dff-telegram-connector.readthedocs.io/en/stable/?badge=stable)](https://readthedocs.org/projects/dff-telegram-connector/badge/?version=stable) -->
-<!-- [![Coverage Status](https://coveralls.io/repos/github/ruthenian8/dff-telegram-connector/badge.svg?branch=main)](https://coveralls.io/github/deepmipt/dialog_flow_engine?branch=main) -->
-[![Codestyle](https://github.com/ruthenian8/dff-telegram-connector/workflows/codestyle/badge.svg)](https://github.com/ruthenian8/dff-telegram-connector)
-[![Tests](https://github.com/ruthenian8/dff-telegram-connector/workflows/test_coverage/badge.svg)](https://github.com/ruthenian8/dff-telegram-connector)
-[![License Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/ruthenian8/dff-telegram-connector/blob/main/LICENSE)
+<!-- [![Documentation Status](https://df-telegram-connector.readthedocs.io/en/stable/?badge=stable)](https://readthedocs.org/projects/df-telegram-connector/badge/?version=stable) -->
+<!-- [![Coverage Status](https://coveralls.io/repos/github/ruthenian8/df-telegram-connector/badge.svg?branch=main)](https://coveralls.io/github/deepmipt/dialog_flow_engine?branch=main) -->
+[![Codestyle](https://github.com/ruthenian8/df-telegram-connector/workflows/codestyle/badge.svg)](https://github.com/ruthenian8/df-telegram-connector)
+[![Tests](https://github.com/ruthenian8/df-telegram-connector/workflows/test_coverage/badge.svg)](https://github.com/ruthenian8/df-telegram-connector)
+[![License Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/ruthenian8/df-telegram-connector/blob/main/LICENSE)
 ![Python 3.6, 3.7, 3.8, 3.9](https://img.shields.io/badge/python-3.6%20%7C%203.7%20%7C%203.8%20%7C%203.9-green.svg)
-<!-- [![PyPI](https://img.shields.io/pypi/v/dff-telegram-connector)](https://pypi.org/project/dff-telegram-connector/)
-[![Downloads](https://pepy.tech/badge/dff-telegram-connector)](https://pepy.tech/project/dff-telegram-connector) -->
+<!-- [![PyPI](https://img.shields.io/pypi/v/df-telegram-connector)](https://pypi.org/project/df-telegram-connector/)
+[![Downloads](https://pepy.tech/badge/df-telegram-connector)](https://pepy.tech/project/df-telegram-connector) -->
 
 # Quickstart
 ## Installation
 ```bash
-pip install dff-telegram-connector
+pip install df-telegram-connector
 ```
 
 ## Basic example
@@ -41,7 +41,7 @@ import os
 from df_engine.core.keywords import GLOBAL, TRANSITIONS, RESPONSE
 from df_engine.core import Context, Actor
 
-from dff_telegram_connector.basic_connector import DffBot
+from df_telegram_connector.connector import DffBot
 
 db_connector=dict()
 
@@ -84,7 +84,7 @@ if __name__ == "__main__":
     bot.infinity_polling()
 ```
 
-To get some of the more advanced examples, take a look at [examples](https://github.com/ruthenian8/dff-telegram-connector/tree/main/examples) on GitHub.
+To get some of the more advanced examples, take a look at [examples](https://github.com/ruthenian8/df-telegram-connector/tree/main/examples) on GitHub.
 
 # Contributing to the Dialog Flow Engine
 

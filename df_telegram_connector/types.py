@@ -2,9 +2,9 @@
 Types
 ******
 
-This module implements local classes for compatibility with `dff-generics` library.
+This module implements local classes for compatibility with `df-generics` library.
 You can use :py:class:`~TelegramResponse` class directly with the `send_response` method
-that belongs to the :py:class:`basic_connector.DFFBot` class.
+that belongs to the :py:class:`connector.DFFBot` class.
 """
 from typing import Any, List, Optional, Union
 from pathlib import Path

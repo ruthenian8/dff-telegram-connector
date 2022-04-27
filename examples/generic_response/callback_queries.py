@@ -9,8 +9,8 @@ from df_engine.core.keywords import TRANSITIONS, RESPONSE, GLOBAL
 from telebot.util import content_type_media
 from telebot import types
 
-from dff_telegram_connector.basic_connector import DFFBot
-from dff_telegram_connector.types import TelegramUI, TelegramButton
+from df_telegram_connector.connector import DFFBot
+from df_telegram_connector.types import TelegramUI, TelegramButton
 
 from df_generics import Response, Keyboard, Button
 

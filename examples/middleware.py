@@ -8,12 +8,12 @@ from df_engine.core.keywords import TRANSITIONS, RESPONSE, GLOBAL
 
 from telebot.util import content_type_media
 
-from dff_telegram_connector.basic_connector import DFFBot
+from df_telegram_connector.connector import DFFBot
 
 
 connector = dict()
-# Optionally, you can use database connection implementations from the dff ecosystem.
-# from dff_db_connector import SqlConnector
+# Optionally, you can use database connection implementations from the df ecosystem.
+# from df_db_connector import SqlConnector
 # connector = SqlConnector("SOME_URI")
 
 # When you pass `db_connector` to the costructor, it sets up middleware that retrieves and saves contexts automatically
@@ -82,7 +82,7 @@ actor = Actor(script, start_label=("root", "start"), fallback_label=("root", "fa
 @bot.message_handler(func=lambda message: True, content_types=content_type_media)
 def dialog_handler(update, data: dict):
     """
-    Standard handler that processes dff responses.
+    Standard handler that processes df responses.
 
     Parameters
     -----------

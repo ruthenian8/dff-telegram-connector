@@ -1,7 +1,7 @@
-dff\_telegram\_connector.basic\_connector module
+df\_telegram\_connector.basic\_connector module
 ================================================
 
-.. automodule:: dff_telegram_connector.basic_connector
+.. automodule:: df_telegram_connector.connector
    :members:
    :undoc-members:
    :show-inheritance:

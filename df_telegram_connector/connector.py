@@ -1,8 +1,8 @@
 """
-basic_connector
+connector
 -----------------
 
-| Basic connector module provides the :py:class:`~dff_telegram_connector.basic_connector.DFFBot` class.
+| Basic connector module provides the :py:class:`~df_telegram_connector.connector.DFFBot` class.
 | It inherits from the :py:class:`~telebot.TeleBot` class from the :py:mod:`~pytelegrambotapi` library.
 | Using it, you can put Telegram update handlers inside your script and condition your transitions on them.
 
@@ -36,7 +36,7 @@ class DFFBot(TeleBot):
         | Passing this parameter to the constructor enables the :py:class:`~DatabaseMiddleware`.
         | Refer to the docs and library examples to learn about this feature.
 
-        | In the release version you will be able to use the `dff-db-connector` library
+        | In the release version you will be able to use the `df-db-connector` library
         | that adapts many kinds of database connectors to this interface.
 
     """
@@ -117,7 +117,7 @@ class CndNamespace:
     """
     This class includes methods that produce df_engine conditions based on pytelegrambotapi updates.
 
-    It is included to the :py:class:`~dff_telegram_connector.basic_connector.DFFBot` as :py:attr:`cnd` attribute.
+    It is included to the :py:class:`~df_telegram_connector.connector.DFFBot` as :py:attr:`cnd` attribute.
     This helps us avoid overriding the original methods.
 
     To set a condition in your script, stick to the signature of the original :py:class:`~telebot.TeleBot` methods.
@@ -193,13 +193,13 @@ class CndNamespace:
 
 class DatabaseMiddleware(BaseMiddleware):
     """
-    | DatabaseMiddleware is an optional extension to the :py:class:`~dff_telegram_connector.basic_connector.DFFBot`.
+    | DatabaseMiddleware is an optional extension to the :py:class:`~df_telegram_connector.connector.DFFBot`.
     | It encapsulates the context retrieval and context saving operations.
     | The context is passed to the decorated handler function with the :py:obj:`data` variable,
     | as suggested by the pytelegrambotapi documentation.
 
     | You needn't create an instance of this class manually, as it will get instantiated automatically,
-    | if you pass the `db_connector` parameter to :py:class:`~dff_telegram_connector.basic_connector.DFFBot`.
+    | if you pass the `db_connector` parameter to :py:class:`~df_telegram_connector.connector.DFFBot`.
 
     .. code-block:: python
 

@@ -10,13 +10,13 @@ from df_engine.core.keywords import TRANSITIONS, RESPONSE, GLOBAL
 from telebot import types
 from telebot.util import content_type_media
 
-from dff_telegram_connector.basic_connector import DFFBot
-from dff_telegram_connector.utils import set_state, get_user_id, get_initial_context
+from df_telegram_connector.connector import DFFBot
+from df_telegram_connector.utils import set_state, get_user_id, get_initial_context
 
 
 connector = dict()
-# Optionally, you can use database connection implementations from the dff ecosystem
-# from dff_db_connector import SqlConnector
+# Optionally, you can use database connection implementations from the df ecosystem
+# from df_db_connector import SqlConnector
 # connector = SqlConnector("SOME_URI")
 
 bot = DFFBot(os.getenv("BOT_TOKEN", "SOMETOKEN"), threaded=False)

@@ -28,7 +28,7 @@ check: lint test
 .PHONY: check
 
 lint: venv
-	$(VENV_PATH)/bin/python -m flake8 --config=setup.cfg dff_telegram_connector/
+	$(VENV_PATH)/bin/python -m flake8 --config=setup.cfg df_telegram_connector/
 	@set -e && $(VENV_PATH)/bin/python -m black --exclude="setup\.py" --exclude="venv\/" --line-length=120 --check . || ( \
 		echo "================================"; \
 		echo "Bad formatting? Run: make format"; \
@@ -38,14 +38,14 @@ lint: venv
 .PHONY: lint
 
 test: venv
-	@$(VENV_PATH)/bin/python -m pytest --cov-report html --cov-report term --cov=dff_telegram_connector tests/
+	@$(VENV_PATH)/bin/python -m pytest --cov-report html --cov-report term --cov=df_telegram_connector tests/
 .PHONY: test
 
 test_all: venv test lint
 .PHONY: test_all
 
 build_doc:
-	sphinx-apidoc -e -f -o docs/source/apiref dff_telegram_connector
+	sphinx-apidoc -e -f -o docs/source/apiref df_telegram_connector
 	sphinx-build -M clean docs/source docs/build
 	sphinx-build -M html docs/source docs/build
 .PHONY: build_doc
