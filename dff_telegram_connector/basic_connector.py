@@ -36,7 +36,7 @@ class DFFBot(TeleBot):
         | Passing this parameter to the constructor enables the :py:class:`~DatabaseMiddleware`.
         | Refer to the docs and library examples to learn about this feature.
 
-        | In the release version you will be able to use the `dff-db-connector` library 
+        | In the release version you will be able to use the `dff-db-connector` library
         | that adapts many kinds of database connectors to this interface.
 
     """
