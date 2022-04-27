@@ -34,10 +34,10 @@ def create_query(data: str):
 def test_message_handling(message, expected, actor_instance):
     condition = basic_bot.cnd.message_handler(func=lambda msg: msg.text == "Hello")
     context = Context(id=123)
-    context.misc["TELEGRAM_CONNECTOR"] = {"keep_flag": True, "data": message}
+    context.framework_states["TELEGRAM_CONNECTOR"] = {"keep_flag": True, "data": message}
     assert condition(context, actor_instance) == expected
     wrong_type = create_query("some data")
-    context.misc["TELEGRAM_CONNECTOR"]["data"] = wrong_type
+    context.framework_states["TELEGRAM_CONNECTOR"]["data"] = wrong_type
     assert condition(context, actor_instance) == False
 
 
@@ -45,10 +45,10 @@ def test_message_handling(message, expected, actor_instance):
 def test_query_handling(query, expected, actor_instance):
     condition = basic_bot.cnd.callback_query_handler(func=lambda call: call.data == "4")
     context = Context(id=123)
-    context.misc["TELEGRAM_CONNECTOR"] = {"keep_flag": True, "data": query}
+    context.framework_states["TELEGRAM_CONNECTOR"] = {"keep_flag": True, "data": query}
     assert condition(context, actor_instance) == expected
     wrong_type = create_text_message("some text")
-    context.misc["TELEGRAM_CONNECTOR"]["data"] = wrong_type
+    context.framework_states["TELEGRAM_CONNECTOR"]["data"] = wrong_type
     assert condition(context, actor_instance) == False
 
 
