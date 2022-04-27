@@ -20,7 +20,7 @@ from df_engine.core import Context, Actor
 from .utils import get_initial_context, get_user_id, set_state, partialmethod, open_io, close_io
 from .types import TelegramResponse
 
-import dff_generics
+import df_generics
 
 
 class DFFBot(TeleBot):
@@ -50,7 +50,7 @@ class DFFBot(TeleBot):
             self.setup_middleware(DatabaseMiddleware(self._connector))
 
     def send_response(
-        self, chat_id: Union[str, int], response: Union[str, dict, dff_generics.Response, TelegramResponse]
+        self, chat_id: Union[str, int], response: Union[str, dict, df_generics.Response, TelegramResponse]
     ):
         """
         Cast the `response` argument to the :py:class:`~TelegramResponse` type and send it.
@@ -60,8 +60,8 @@ class DFFBot(TeleBot):
         -----------
         chat_id: Union[str, int]
             ID of the chat to send the response to
-        response: Union[str, dict, dff_generics.Response, TelegramResponse]
-            Response data. Can be passed as a :py:class:`~str`, a :py:class:`~dict`, or a :py:class:`~dff_generics.Response`
+        response: Union[str, dict, df_generics.Response, TelegramResponse]
+            Response data. Can be passed as a :py:class:`~str`, a :py:class:`~dict`, or a :py:class:`~df_generics.Response`
             which will then be used to instantiate a :py:class:`~TelegramResponse` object.
             A :py:class:`~TelegramResponse` can also be passed directly.
             Note, that the dict should implement the :py:class:`~TelegramResponse` schema.
@@ -72,13 +72,13 @@ class DFFBot(TeleBot):
             ready_response = response
         elif isinstance(response, str):
             ready_response = TelegramResponse(text=response)
-        elif isinstance(response, dict) or isinstance(response, dff_generics.Response):
+        elif isinstance(response, dict) or isinstance(response, df_generics.Response):
             ready_response = TelegramResponse.parse_obj(response)
         else:
             raise TypeError(
                 """
                 Type of the response argument should be one of the following: 
-                str, dict, TelegramResponse, or dff_generics.Response
+                str, dict, TelegramResponse, or df_generics.Response
                 """
             )
 

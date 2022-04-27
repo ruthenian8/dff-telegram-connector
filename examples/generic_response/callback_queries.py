@@ -12,7 +12,7 @@ from telebot import types
 from dff_telegram_connector.basic_connector import DFFBot
 from dff_telegram_connector.types import TelegramUI, TelegramButton
 
-from dff_generics import Response, Keyboard, Button
+from df_generics import Response, Keyboard, Button
 
 connector = dict()
 
@@ -23,12 +23,17 @@ script = {
     GLOBAL: {TRANSITIONS: {("general", "keyboard"): bot.cnd.message_handler(commands=["start", "restart"])}},
     "root": {
         "start": {
-            RESPONSE: Response(text="Finishing test"),
+            RESPONSE: Response(text=""),
             TRANSITIONS: {
                 ("general", "keyboard"): cnd.true(),
             },
         },
-        "fallback": {RESPONSE: Response(text="Finishing test")},
+        "fallback": {
+            RESPONSE: Response(text="Finishing test. Type anything to restart."),
+            TRANSITIONS: {
+                ("general", "keyboard"): cnd.true(),
+            },
+        },
     },
     # The reply below uses generic classes.
     # When creating a UI, you can use the generic Keyboard class.

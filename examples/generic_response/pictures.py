@@ -11,7 +11,7 @@ from telebot import types
 
 from dff_telegram_connector.basic_connector import DFFBot
 
-from dff_generics import Response, Image, Attachments
+from df_generics import Response, Image, Attachments
 
 
 def doc_is_photo(message: types.Message):

@@ -9,7 +9,7 @@
 
 Inside the `cnd` subspace of the new class you will find some factory methods that create `df_engine`-style FSM transitions based on the updates that your service receives from Telegram: not only `messages`, but also `callback queries` and many more. All of those can now be handled by `df_engine's` `Actor` that will transition to the right part of the `Plot` depending on the conditions you choose. 
 
-For instance, the following construction in your `Plot` will ensure that the `Actor` transitions to the start node on each use of the "/start" command:
+For instance, the following construction in your `Script` will ensure that the `Actor` transitions to the start node on each use of the "/start" command:
 
 ```python
 TRANSITIONS: {("root", "start"): bot.cnd.message_handler(commands=["start"])}
