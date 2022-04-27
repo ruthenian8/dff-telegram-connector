@@ -22,7 +22,7 @@ def set_state(ctx: Context, update: types.JsonDeserializable):
 
     """
     ctx.add_request(update.text if (hasattr(update, "text") and update.text) else "data")
-    ctx.misc["TELEGRAM_CONNECTOR"]["data"] = update
+    ctx.framework_states["TELEGRAM_CONNECTOR"]["data"] = update
     return ctx
 
 
@@ -44,8 +44,7 @@ def get_initial_context(user_id: str):
 
     """
     ctx = Context(id=user_id)
-    ctx.misc.update({"TELEGRAM_CONNECTOR": {"keep_flag": True, "data": None}})
-    assert "TELEGRAM_CONNECTOR" in ctx.misc
+    ctx.framework_states.update({"TELEGRAM_CONNECTOR": {"keep_flag": True, "data": None}})
     return ctx
 
 
@@ -59,10 +58,7 @@ def partialmethod(func: Callable, **part_kwargs):
     def wrapper(self, *args, **kwargs):
         return func(self, *args, **part_kwargs, **kwargs)
 
-    wrapper.__doc__ = f"""
-    Creates a df_engine condition, triggered by update type {str(list(part_kwargs.values()))}. 
-    The signature is equal with the :py:class:`telebot.Telebot` method of the same name.
-    """
+    wrapper.__doc__ = func.__doc__.format(**part_kwargs)
 
     return wrapper
 

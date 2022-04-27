@@ -24,7 +24,7 @@ connector = dict()
 
 bot = DFFBot(os.getenv("BOT_TOKEN", "SOMETOKEN"), db_connector=connector, threaded=False)
 
-plot = {
+script = {
     GLOBAL: {TRANSITIONS: {("pics", "ask_picture"): bot.cnd.message_handler(commands=["start"])}},
     "root": {
         "start": {RESPONSE: Response(text=""), TRANSITIONS: {("pics", "ask_picture"): cnd.true()}},
@@ -74,7 +74,7 @@ plot = {
     },
 }
 
-actor = Actor(plot, start_label=("root", "start"), fallback_label=("root", "fallback"))
+actor = Actor(script, start_label=("root", "start"), fallback_label=("root", "fallback"))
 
 
 def extract_data(message):

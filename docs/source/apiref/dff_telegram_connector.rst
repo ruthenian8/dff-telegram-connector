@@ -8,6 +8,7 @@ Submodules
    :maxdepth: 4
 
    dff_telegram_connector.basic_connector
+   dff_telegram_connector.types
    dff_telegram_connector.utils
 
 Module contents

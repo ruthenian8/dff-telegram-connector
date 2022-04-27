@@ -20,14 +20,14 @@ connector = dict()
 
 bot = DFFBot(os.getenv("BOT_TOKEN", "SOMETOKEN"), threaded=False)
 
-plot: dict
+script: dict
 """
-| The following example demonstrates that you can use any TeleBot condition inside your plot.
+| The following example demonstrates that you can use any TeleBot condition inside your script.
 | To achieve this, DFFBot provides a cnd namespace with telebot handler equivalents. 
-| Thus, the Actor can choose, which node to go to, depending on whether the bot was sent a file or a particular command, etc.
+| Thus, the Actor chooses the next node depending on whether the bot was sent a file, a particular command, etc.
 
 """
-plot = {
+script = {
     GLOBAL: {
         TRANSITIONS: {
             ("root", "start", 2): bot.cnd.message_handler(commands=["start"]),
@@ -84,7 +84,7 @@ plot = {
     },
 }
 
-actor = Actor(plot, start_label=("root", "start"), fallback_label=("root", "fallback"))
+actor = Actor(script, start_label=("root", "start"), fallback_label=("root", "fallback"))
 
 
 # The content_type parameter is set to the `content_type_media` constant, so that the bot can reply to images, stickers, etc.

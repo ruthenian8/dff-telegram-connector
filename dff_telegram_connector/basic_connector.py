@@ -4,7 +4,7 @@ basic_connector
 
 | Basic connector module provides the :py:class:`~dff_telegram_connector.basic_connector.DFFBot` class.
 | It inherits from the :py:class:`~telebot.TeleBot` class from the :py:mod:`~pytelegrambotapi` library.
-| Using it, you can put Telegram update handlers inside your plot and condition your transitions on them.
+| Using it, you can put Telegram update handlers inside your script and condition your transitions on them.
 
 """
 from pathlib import Path
@@ -33,8 +33,11 @@ class DFFBot(TeleBot):
         | Any :py:class:`~typing.MutableMapping`-like object that supports setting, getting and deleting items.
         | Note that this argument is keyword-only.
 
-        | In the release version you will be able to use the dff-db-connector library that adapts many kinds of
-        | database connectors to this interface.
+        | Passing this parameter to the constructor enables the :py:class:`~DatabaseMiddleware`.
+        | Refer to the docs and library examples to learn about this feature.
+
+        | In the release version you will be able to use the `dff-db-connector` library 
+        | that adapts many kinds of database connectors to this interface.
 
     """
 
@@ -46,15 +49,18 @@ class DFFBot(TeleBot):
         if use_middleware:
             self.setup_middleware(DatabaseMiddleware(self._connector))
 
-    def send_response(self, chat_id: Union[str, int], response: Union[str, dict, BaseModel]):
+    def send_response(
+        self, chat_id: Union[str, int], response: Union[str, dict, dff_generics.Response, TelegramResponse]
+    ):
         """
         Cast the `response` argument to the :py:class:`~TelegramResponse` type and send it.
+        The order is that the media are sent first, after which the marked-up text message is sent.
 
         Parameters
         -----------
         chat_id: Union[str, int]
             ID of the chat to send the response to
-        response: Union[str, dict, BaseModel]
+        response: Union[str, dict, dff_generics.Response, TelegramResponse]
             Response data. Can be passed as a :py:class:`~str`, a :py:class:`~dict`, or a :py:class:`~dff_generics.Response`
             which will then be used to instantiate a :py:class:`~TelegramResponse` object.
             A :py:class:`~TelegramResponse` can also be passed directly.
@@ -66,7 +72,7 @@ class DFFBot(TeleBot):
             ready_response = response
         elif isinstance(response, str):
             ready_response = TelegramResponse(text=response)
-        elif isinstance(response, dict) or (dff_generics and isinstance(response, dff_generics.Response)):
+        elif isinstance(response, dict) or isinstance(response, dff_generics.Response):
             ready_response = TelegramResponse.parse_obj(response)
         else:
             raise TypeError(
@@ -114,14 +120,14 @@ class CndNamespace:
     It is included to the :py:class:`~dff_telegram_connector.basic_connector.DFFBot` as :py:attr:`cnd` attribute.
     This helps us avoid overriding the original methods.
 
-    To set a condition in your plot, stick to the signature of the original :py:class:`~telebot.TeleBot` methods.
+    To set a condition in your script, stick to the signature of the original :py:class:`~telebot.TeleBot` methods.
     E. g. the result of
 
     .. code-block:: python
 
         bot.cnd.message_handler(func=lambda msg: True)
 
-    in your :py:class:`~df_engine.core.Plot` will always be `True`, unless the new update is not a message.
+    in your :py:class:`~df_engine.core.Script` will always be `True`, unless the new update is not a message.
 
     """
 
@@ -132,9 +138,8 @@ class CndNamespace:
         self, target_type: type, commands=None, regexp=None, func=None, content_types=None, chat_types=None, **kwargs
     ):
         """
-        | Generic handler method that serves as a base for other methods.
-        | We advise against invoking it directly.
-
+        Creates a df_engine condition, triggered by update type {target_type}.
+        The signature is equal with the :py:class:`~telebot.Telebot` method of the same name.
         """
 
         update_handler = self.bot._build_handler_dict(
@@ -149,7 +154,7 @@ class CndNamespace:
         )
 
         def condition(ctx: Context, actor: Actor, *args, **kwargs):
-            update = ctx.misc.get("TELEGRAM_CONNECTOR", {}).get("data")
+            update = ctx.framework_states.get("TELEGRAM_CONNECTOR", {}).get("data")
             if not update or not isinstance(update, target_type):
                 return False
             test_result = self.bot._test_message_handler(update_handler, update)
@@ -192,6 +197,16 @@ class DatabaseMiddleware(BaseMiddleware):
     | It encapsulates the context retrieval and context saving operations.
     | The context is passed to the decorated handler function with the :py:obj:`data` variable,
     | as suggested by the pytelegrambotapi documentation.
+
+    | You needn't create an instance of this class manually, as it will get instantiated automatically,
+    | if you pass the `db_connector` parameter to :py:class:`~dff_telegram_connector.basic_connector.DFFBot`.
+
+    .. code-block:: python
+
+        connector = dict()
+        bot = DFFBot(token=token, db_connector=connector)
+
+    The proper usage of this feature is documented in library examples.
 
     """
 

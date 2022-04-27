@@ -27,7 +27,7 @@ def doc_is_photo(message):
 
 bot = DFFBot(os.getenv("BOT_TOKEN", "SOMETOKEN"), threaded=False)
 
-plot = {
+script = {
     GLOBAL: {TRANSITIONS: {("pics", "ask_picture"): bot.cnd.message_handler(commands=["start"])}},
     "root": {
         "start": {RESPONSE: "", TRANSITIONS: {("pics", "ask_picture"): cnd.true()}},
@@ -71,9 +71,9 @@ plot = {
     },
 }
 
-actor = Actor(plot, start_label=("root", "start"), fallback_label=("root", "fallback"))
+actor = Actor(script, start_label=("root", "start"), fallback_label=("root", "fallback"))
 
-# While most of the time you will be using only one handler to iterate over your plot,
+# While most of the time you will be using only one handler to iterate over your script,
 # you can always create a separate function that will take care of additional tasks.
 def extract_data(message):
     """A function to extract data with"""

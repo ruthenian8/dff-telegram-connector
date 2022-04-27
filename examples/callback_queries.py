@@ -21,7 +21,7 @@ connector = dict()
 
 bot = DFFBot(os.getenv("BOT_TOKEN", "SOMETOKEN"), threaded=False)
 
-plot = {
+script = {
     GLOBAL: {TRANSITIONS: {("general", "keyboard"): bot.cnd.message_handler(commands=["start", "restart"])}},
     "root": {
         "start": {
@@ -52,7 +52,7 @@ plot = {
 }
 
 
-actor = Actor(plot, start_label=("root", "start"), fallback_label=("root", "fallback"))
+actor = Actor(script, start_label=("root", "start"), fallback_label=("root", "fallback"))
 
 
 def get_markup(data: Optional[dict]):

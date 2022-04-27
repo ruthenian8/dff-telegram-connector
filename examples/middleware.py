@@ -6,7 +6,6 @@ import df_engine.conditions as cnd
 from df_engine.core import Context, Actor
 from df_engine.core.keywords import TRANSITIONS, RESPONSE, GLOBAL
 
-from telebot import types
 from telebot.util import content_type_media
 
 from dff_telegram_connector.basic_connector import DFFBot
@@ -20,7 +19,7 @@ connector = dict()
 # When you pass `db_connector` to the costructor, it sets up middleware that retrieves and saves contexts automatically
 bot = DFFBot(os.getenv("BOT_TOKEN", "SOMETOKEN"), db_connector=connector, threaded=False)
 
-plot = {
+script = {
     GLOBAL: {
         TRANSITIONS: {
             ("root", "start", 2): bot.cnd.message_handler(commands=["start"]),
@@ -77,7 +76,7 @@ plot = {
     },
 }
 
-actor = Actor(plot, start_label=("root", "start"), fallback_label=("root", "fallback"))
+actor = Actor(script, start_label=("root", "start"), fallback_label=("root", "fallback"))
 
 
 @bot.message_handler(func=lambda message: True, content_types=content_type_media)

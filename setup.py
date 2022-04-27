@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import pip
 import pathlib
 
@@ -10,11 +11,22 @@ except ImportError:
     from distutils.core import setup
 from setuptools import find_packages
 
+github_token = os.getenv("GITHUB_TOKEN")
+
+
+def add_token(line: str):
+    if github_token and "git" in line:
+        parted = line.partition("://")
+        return "".join([*parted[:-1], github_token + "@", parted[-1]])
+    return line
+
 
 def parse_requirements(filename):
     """load requirements from a pip requirements file"""
-    lines = (line.strip() for line in open(filename))
-    return [line for line in lines if line and not line.startswith("#")]
+    with open(filename, "r", encoding="utf-8") as file:
+        lines = (line.strip() for line in file)
+        lines = [add_token(line) for line in lines if line and not line.startswith("#")]
+        return lines
 
 
 LOCATION = pathlib.Path(__file__).parent.resolve()

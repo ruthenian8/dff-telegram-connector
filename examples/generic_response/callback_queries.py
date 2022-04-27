@@ -19,7 +19,7 @@ connector = dict()
 bot = DFFBot(token=os.getenv("BOT_TOKEN", "SOMETOKEN"), db_connector=connector, threaded=False)
 
 
-plot = {
+script = {
     GLOBAL: {TRANSITIONS: {("general", "keyboard"): bot.cnd.message_handler(commands=["start", "restart"])}},
     "root": {
         "start": {
@@ -84,7 +84,10 @@ plot = {
         },
         "fail": {
             RESPONSE: Response(
-                **{"text": "Incorrect answer, try again", "ui": TelegramUI(keyboard=types.ReplyKeyboardRemove())}
+                **{
+                    "text": "Incorrect answer, type anything to try again",
+                    "ui": TelegramUI(keyboard=types.ReplyKeyboardRemove()),
+                }
             ),
             TRANSITIONS: {("general", "keyboard"): cnd.true()},
         },
@@ -92,7 +95,7 @@ plot = {
 }
 
 
-actor = Actor(plot, start_label=("root", "start"), fallback_label=("root", "fallback"))
+actor = Actor(script, start_label=("root", "start"), fallback_label=("root", "fallback"))
 
 
 @bot.callback_query_handler(func=lambda call: True)
