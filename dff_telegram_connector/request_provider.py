@@ -16,6 +16,7 @@ class PollingRequestProvider(AbsRequestProvider):
     """
     Class for compatibility with df_runner. Retrieves updates by polling.
     """
+
     def __init__(self, bot: DFFBot, interval=3, allowed_updates=None, timeout=20, long_polling_timeout=20):
         self.bot = bot
         self.interval = interval
@@ -62,16 +63,17 @@ class PollingRequestProvider(AbsRequestProvider):
 
 class FlaskRequestProvider(AbsRequestProvider):
     """Class for compatibility with df_runner. Retrieves updates from post json requests."""
+
     def __init__(
         self,
         bot: DFFBot,
         app: Flask,
         host: str = "localhost",
-        port: int = 5000,
+        port: int = 8443,
         endpoint: str = "/dff-bot",
         full_uri: str = None,
     ):
-        if Flask is None:
+        if Flask is None or request is None or abort is None:
             raise ModuleNotFoundError("Flask is not installed")
 
         self.bot = bot
@@ -79,7 +81,7 @@ class FlaskRequestProvider(AbsRequestProvider):
         self.host = host
         self.port = port
         self.endpoint = endpoint
-        self.full_uri = full_uri or "".join([f"http://{host}:{port}", endpoint])
+        self.full_uri = full_uri or "".join([f"https://{host}:{port}", endpoint])
 
     def run(self, runner: Runner):
         if self.set_state not in runner._pre_annotators:
@@ -102,12 +104,12 @@ class FlaskRequestProvider(AbsRequestProvider):
             ctx: Context = runner.request_handler(ctx_id, inner_update)
             self.bot.send_response(id, ctx.last_response)
             return ""
-                
 
         self.app.route(self.endpoint, methods=["POST"])(handle_updates)
         self.bot.remove_webhook()
+        self.bot.set_webhook(self.full_uri)
 
-        self.app.run(**self.run_kwargs)
+        self.app.run(host=self.host, port=self.port)
 
     @staticmethod
     def set_state(ctx: Context, actor: Actor):
