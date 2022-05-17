@@ -7,7 +7,7 @@ from df_engine.core.context import Context
 
 sys.path.insert(0, "../")
 
-from dff_telegram_connector.basic_connector import DatabaseMiddleware
+from df_telegram_connector.connector import DatabaseMiddleware
 from examples.basic_bot import bot as basic_bot
 from examples.middleware import bot as wired_bot
 

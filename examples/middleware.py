@@ -8,7 +8,7 @@ from df_engine.core.keywords import TRANSITIONS, RESPONSE, GLOBAL
 
 from telebot.util import content_type_media
 
-from dff_telegram_connector.basic_connector import DFFBot
+from df_telegram_connector.connector import TelegramConnector
 
 
 connector = dict()
@@ -17,7 +17,7 @@ connector = dict()
 # connector = SqlConnector("SOME_URI")
 
 # When you pass `db_connector` to the costructor, it sets up middleware that retrieves and saves contexts automatically
-bot = DFFBot(os.getenv("BOT_TOKEN", "SOMETOKEN"), db_connector=connector, threaded=False)
+bot = TelegramConnector(os.getenv("BOT_TOKEN", "SOMETOKEN"), db_connector=connector, threaded=False)
 
 script = {
     GLOBAL: {

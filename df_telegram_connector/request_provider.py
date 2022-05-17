@@ -3,7 +3,7 @@ from telebot import types, logger
 from df_engine.core import Context, Actor
 from df_runner import AbsRequestProvider, Runner
 
-from .basic_connector import DFFBot
+from .connector import TelegramConnector
 from .utils import get_user_id, set_state, get_initial_context
 
 try:
@@ -17,7 +17,7 @@ class PollingRequestProvider(AbsRequestProvider):
     Class for compatibility with df_runner. Retrieves updates by polling.
     """
 
-    def __init__(self, bot: DFFBot, interval=3, allowed_updates=None, timeout=20, long_polling_timeout=20):
+    def __init__(self, bot: TelegramConnector, interval=3, allowed_updates=None, timeout=20, long_polling_timeout=20):
         self.bot = bot
         self.interval = interval
         self.allowed_updates = allowed_updates
@@ -66,7 +66,7 @@ class FlaskRequestProvider(AbsRequestProvider):
 
     def __init__(
         self,
-        bot: DFFBot,
+        bot: TelegramConnector,
         app: Flask,
         host: str = "localhost",
         port: int = 8443,

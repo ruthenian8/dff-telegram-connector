@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
 import pip
 import pathlib
 
@@ -11,25 +10,15 @@ except ImportError:
     from distutils.core import setup
 from setuptools import find_packages
 
-github_token = os.getenv("GITHUB_TOKEN")
 
-
-def add_token(line: str):
-    if github_token and "git" in line:
-        parted = line.partition("://")
-        return "".join([*parted[:-1], github_token + "@", parted[-1]])
-    return line
+LOCATION = pathlib.Path(__file__).parent.resolve()
 
 
 def parse_requirements(filename):
     """load requirements from a pip requirements file"""
-    with open(filename, "r", encoding="utf-8") as file:
-        lines = (line.strip() for line in file)
-        lines = [add_token(line) for line in lines if line and not line.startswith("#")]
-        return lines
+    lines = (line.strip() for line in (LOCATION / filename).open())
+    return [line for line in lines if line and not line.startswith("#")]
 
-
-LOCATION = pathlib.Path(__file__).parent.resolve()
 
 # Get the long description from the README file
 readme_file = LOCATION / "README.md"
@@ -45,14 +34,14 @@ test_requirements = parse_requirements("requirements_test.txt")
 
 
 setup(
-    name="dff-telegram-connector",
-    version="0.1",
+    name="df_telegram_connector",
+    version="0.1.0",
     description=description,
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/ruthenian8/dff-telegram-connector",
-    author="Daniil Ignatiev",
-    author_email="ruthenian8@gmail.com",
+    url="https://github.com/deepmipt/dialog_flow_telegram_connector",
+    author="Denis Kuznetsov",
+    author_email="kuznetsov.den.p@gmail.com",
     classifiers=[  # Optional
         #   3 - Alpha
         #   4 - Beta
@@ -69,7 +58,7 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3 :: Only",
     ],
-    keywords=["chatbots", "dff-telegram-connector"],  # Optional
+    keywords=["chatbots", "Dialog Flow Telegram Connector"],  # Optional
     packages=find_packages(where="."),  # Required
     include_package_data=True,
     python_requires=">=3.6, <4",

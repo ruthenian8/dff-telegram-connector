@@ -6,7 +6,7 @@ from telebot import types
 
 sys.path.insert(0, "../dff-generics")
 
-from dff_telegram_connector.types import TelegramResponse, TelegramAttachments, TelegramAttachment
+from df_telegram_connector.types import TelegramResponse, TelegramAttachments, TelegramAttachment
 
 from df_generics import Attachments, Response, Keyboard, Button, Image
 

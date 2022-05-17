@@ -9,7 +9,7 @@ from df_engine.core.keywords import TRANSITIONS, RESPONSE, GLOBAL
 from telebot.util import content_type_media
 from telebot import types
 
-from dff_telegram_connector.basic_connector import DFFBot
+from df_telegram_connector.connector import TelegramConnector
 
 from df_generics import Response, Image, Attachments
 
@@ -22,7 +22,7 @@ my_image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "kitte
 
 connector = dict()
 
-bot = DFFBot(os.getenv("BOT_TOKEN", "SOMETOKEN"), db_connector=connector, threaded=False)
+bot = TelegramConnector(os.getenv("BOT_TOKEN", "SOMETOKEN"), db_connector=connector, threaded=False)
 
 script = {
     GLOBAL: {TRANSITIONS: {("pics", "ask_picture"): bot.cnd.message_handler(commands=["start"])}},

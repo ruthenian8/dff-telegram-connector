@@ -2,9 +2,9 @@
 Types
 ******
 
-This module implements local classes for compatibility with `dff-generics` library.
+This module implements local classes for compatibility with `df-generics` library.
 You can use :py:class:`~TelegramResponse` class directly with the `send_response` method
-that belongs to the :py:class:`basic_connector.DFFBot` class.
+that belongs to the :py:class:`connector.TelegramConnector` class.
 """
 from typing import Any, List, Optional, Union
 from pathlib import Path
@@ -63,7 +63,7 @@ class TelegramAttachment(AdapterModel):
     @root_validator
     def validate_id_or_source(cls, values):
         if bool(values["source"]) == bool(values["id"]):
-            raise ValidationError("Attachment type requires exactly one parameter, `source` or `id`, to be set.")
+            raise ValidationError("Attachment type requires exactly one parameter, `source` or `id`.")
         return values
 
     @validator("source", pre=False)

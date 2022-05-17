@@ -5,14 +5,16 @@
 
 [Dff Telegram Connector](https://github.com/ruthenian8/dff-telegram-connector) is an adapter module that integrates `df_engine` and [pytelegrambotapi](https://github.com/eternnoir/pyTelegramBotAPI) library, a popular Python implementation of the Telegram Bot API. In combination, these two components make the development of conversational services for Telegram straightforward and intuitive: while `pytelegrambotapi` provides an interface to build FSM-based bots, its capabilities in this domain are somewhat limited. In contrast, combining `df_engine` with `pytelegrambotapi` offers a comprehensive way to define a Finite State Machine and wire it up with your bot. (For more information, see the [Dialogflow Engine](https://github.com/deepmipt/dialog_flow_engine) documentation.)
 
-`DFFBot` class that we use inherits from `TeleBot`, which is why all the `TeleBot` methods are still available. You can use this class exactly like you've been using `TeleBot`, but with a number of small differences. 
+`TelegramConnector` class that we use inherits from `TeleBot`, which is why all the `TeleBot` methods are still available. You can use this class exactly like you've been using `TeleBot`, but with a number of small differences. 
 
-Inside the `cnd` subspace of the new class you will find some factory methods that create `df_engine`-style FSM transitions based on the updates that your service receives from Telegram: not only `messages`, but also `callback queries` and many more. All of those can now be handled by `df_engine's` `Actor` that will transition to the right part of the `Plot` depending on the conditions you choose. 
+Inside the `cnd` subspace of the new class you will find some factory methods that create `df_engine`-style FSM transitions based on the updates that your service receives from Telegram: not only `messages`, but also `callback queries` and many more. All of those can now be handled by `df_engine's` `Actor` that will transition to the right part of the `Script` depending on the conditions you choose. 
 
 For instance, the following construction in your `Script` will ensure that the `Actor` transitions to the start node on each use of the "/start" command:
 
 ```python
-TRANSITIONS: {("root", "start"): bot.cnd.message_handler(commands=["start"])}
+from df_engine.core.keywords import GLOBAL, TRANSITIONS
+
+GLOBAL: {TRANSITIONS: {("root", "start"): bot.cnd.message_handler(commands=["start"])}}
 ```
 
 As one can see from the example above, the name and signature of the method match those of the `TeleBot`.`message_handler` method, which is why you don't have to learn new things to make use of this feature.

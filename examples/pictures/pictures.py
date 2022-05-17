@@ -11,8 +11,8 @@ from df_engine import conditions as cnd
 from telebot import types
 from telebot.util import content_type_media
 
-from dff_telegram_connector.basic_connector import DFFBot, get_user_id, get_initial_context
-from dff_telegram_connector.utils import set_state
+from df_telegram_connector.connector import TelegramConnector, get_user_id, get_initial_context
+from df_telegram_connector.utils import set_state
 
 
 connector = dict()
@@ -25,7 +25,7 @@ def doc_is_photo(message):
     return message.document and message.document.mime_type == "image/jpeg"
 
 
-bot = DFFBot(os.getenv("BOT_TOKEN", "SOMETOKEN"), threaded=False)
+bot = TelegramConnector(os.getenv("BOT_TOKEN", "SOMETOKEN"), threaded=False)
 
 script = {
     GLOBAL: {TRANSITIONS: {("pics", "ask_picture"): bot.cnd.message_handler(commands=["start"])}},

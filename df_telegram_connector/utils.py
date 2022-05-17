@@ -27,8 +27,8 @@ def set_state(ctx: Context, update: types.JsonDeserializable):
 
 
 def get_user_id(update: types.JsonDeserializable) -> str:
-    """Extracts user ID from an update instance AND casts it to a string"""
-    assert hasattr(update, "from_user"), f"Received an invalid update object: {str(type(update))}"
+    """Extracts user ID from an update instance and casts it to a string"""
+    assert hasattr(update, "from_user"), f"Received an invalid update object: {str(type(update))}."
     return str(update.from_user.id)
 
 
@@ -64,7 +64,7 @@ def partialmethod(func: Callable, **part_kwargs):
 
 
 def open_io(item: types.InputMedia):
-    """Returns a copy of InputMedia with an opened file descriptor instead of path"""
+    """Returns a copy of InputMedia with an opened file descriptor instead of path."""
     copied_item = copy(item)
     if isinstance(copied_item.media, Path):
         copied_item.media = copied_item.media.open(mode="rb")
@@ -72,6 +72,6 @@ def open_io(item: types.InputMedia):
 
 
 def close_io(item: types.InputMedia):
-    """Closes an IO in an InputMedia object to perform the cleanup"""
+    """Closes an IO in an InputMedia object to perform the cleanup."""
     if isinstance(item.media, IOBase):
         item.media.close()
