@@ -18,9 +18,9 @@ sys.path.insert(0, os.path.abspath("../.."))
 
 # -- Project information -----------------------------------------------------
 
-project = "Dff Telegram Connector"
-copyright = "Neural Networks and Deep Learning Lab, MIPT"
-author = "Daniil Ignatiev"
+project = "Dialog Flow Telegram Connector"
+copyright = "Denis Kuznetsov"
+author = "Denis Kuznetsov"
 
 # The full version, including alpha/beta/rc tags
 release = "0.1"
