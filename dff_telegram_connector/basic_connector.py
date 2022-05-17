@@ -117,10 +117,10 @@ class CndNamespace:
     """
     This class includes methods that produce df_engine conditions based on pytelegrambotapi updates.
 
-    It is included to the :py:class:`~dff_telegram_connector.basic_connector.DFFBot` as :py:attr:`cnd` attribute.
+    It exists in the :py:class:`~dff_telegram_connector.basic_connector.DFFBot` as :py:attr:`cnd` attribute.
     This helps us avoid overriding the original methods.
 
-    To set a condition in your script, stick to the signature of the original :py:class:`~telebot.TeleBot` methods.
+    To set a condition in your script, use the signature of the original :py:class:`~telebot.TeleBot` methods.
     E. g. the result of
 
     .. code-block:: python
