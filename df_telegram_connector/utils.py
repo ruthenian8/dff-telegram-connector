@@ -58,7 +58,9 @@ def partialmethod(func: Callable, **part_kwargs):
     def wrapper(self, *args, **kwargs):
         return func(self, *args, **part_kwargs, **kwargs)
 
-    wrapper.__doc__ = func.__doc__.format(**part_kwargs)
+    if func.__doc__ is not None:
+        doc: str = func.__doc__
+        wrapper.__doc__ = doc.format(**part_kwargs)
 
     return wrapper
 

@@ -8,7 +8,7 @@ Connector
 
 """
 from pathlib import Path
-from typing import MutableMapping, Union
+from typing import MutableMapping, Optional, Union
 from pydantic import BaseModel
 
 from telebot import types, TeleBot
@@ -41,13 +41,15 @@ class TelegramConnector(TeleBot):
 
     """
 
-    def __init__(self, *args, db_connector: MutableMapping = None, **kwargs):
+    def __init__(self, *args, db_connector: Optional[MutableMapping] = None, **kwargs):
         use_middleware = db_connector is not None
         super().__init__(*args, use_class_middlewares=use_middleware, **kwargs)
-        self._connector = db_connector
+        self._connector = None
         self.cnd = CndNamespace(self)
-        if use_middleware:
-            self.setup_middleware(DatabaseMiddleware(self._connector))
+        if db_connector is not None:
+            self._connector = db_connector
+            conn: MutableMapping = self._connector
+            self.setup_middleware(DatabaseMiddleware(conn))
 
     def send_response(
         self, chat_id: Union[str, int], response: Union[str, dict, df_generics.Response, TelegramResponse]
@@ -61,7 +63,8 @@ class TelegramConnector(TeleBot):
         chat_id: Union[str, int]
             ID of the chat to send the response to
         response: Union[str, dict, df_generics.Response, TelegramResponse]
-            Response data. Can be passed as a :py:class:`~str`, a :py:class:`~dict`, or a :py:class:`~df_generics.Response`
+            Response data. Can be passed as a :py:class:`~str`, a :py:class:`~dict`,
+            or a :py:class:`~df_generics.Response`.
             which will then be used to instantiate a :py:class:`~TelegramResponse` object.
             A :py:class:`~TelegramResponse` can also be passed directly.
             Note, that the dict should implement the :py:class:`~TelegramResponse` schema.

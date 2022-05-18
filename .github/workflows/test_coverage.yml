@@ -38,4 +38,7 @@ jobs:
           else
             make test
           fi
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          TEST_CHAT: ${{ secrets.TEST_CHAT }}
         shell: bash

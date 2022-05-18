@@ -6,11 +6,12 @@ This module implements local classes for compatibility with `df-generics` librar
 You can use :py:class:`~TelegramResponse` class directly with the `send_response` method
 that belongs to the :py:class:`connector.TelegramConnector` class.
 """
+from argparse import ArgumentError
 from typing import Any, List, Optional, Union
 from pathlib import Path
 
 from telebot import types
-from pydantic import BaseModel, ValidationError, validator, root_validator, Field, Extra, FilePath, HttpUrl
+from pydantic import BaseModel, ValidationError, validator, root_validator, Field, Extra, FilePath, HttpUrl, Required
 
 import df_generics
 
@@ -63,7 +64,7 @@ class TelegramAttachment(AdapterModel):
     @root_validator
     def validate_id_or_source(cls, values):
         if bool(values["source"]) == bool(values["id"]):
-            raise ValidationError("Attachment type requires exactly one parameter, `source` or `id`.")
+            raise ArgumentError("Attachment type requires exactly one parameter, `source` or `id`.")
         return values
 
     @validator("source", pre=False)
@@ -71,7 +72,7 @@ class TelegramAttachment(AdapterModel):
         if not isinstance(source, Path):
             return source
         if not source.exists():
-            raise ValidationError(f"Provided filepath {str(source)} does not exist")
+            raise OSError(f"Provided filepath {str(source)} does not exist")
         return source
 
 
@@ -105,7 +106,7 @@ class TelegramAttachments(AdapterModel):
 
 
 class TelegramResponse(AdapterModel):
-    text: str = ...
+    text: str = Required
     ui: Optional[TelegramUI] = None
     location: Optional[types.Location] = None
     document: Optional[TelegramAttachment] = None
