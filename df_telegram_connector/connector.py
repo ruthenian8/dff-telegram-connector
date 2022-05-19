@@ -45,7 +45,7 @@ class TelegramConnector(TeleBot):
         use_middleware = db_connector is not None
         super().__init__(*args, use_class_middlewares=use_middleware, **kwargs)
         self._connector = None
-        self.cnd = CndNamespace(self)
+        self.cnd = ConditionNamespace(self)
         if db_connector is not None:
             self._connector = db_connector
             conn: MutableMapping = self._connector
@@ -116,7 +116,7 @@ class TelegramConnector(TeleBot):
         )
 
 
-class CndNamespace:
+class ConditionNamespace:
     """
     This class includes methods that produce df_engine conditions based on pytelegrambotapi updates.
 
