@@ -4,12 +4,13 @@ import sys
 
 import df_engine.conditions as cnd
 from df_engine.core import Context, Actor
-from df_engine.core.keywords import TRANSITIONS, RESPONSE, GLOBAL
+from df_engine.core.keywords import TRANSITIONS, RESPONSE
 
 from telebot.util import content_type_media
 from telebot import types
 
 from df_telegram_connector.connector import TelegramConnector
+from df_telegram_connector.utils import set_state, get_user_id, get_initial_context
 
 from df_generics import Response, Image, Attachments
 
@@ -22,15 +23,14 @@ my_image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "kitte
 
 connector = dict()
 
-bot = TelegramConnector(os.getenv("BOT_TOKEN", "SOMETOKEN"), db_connector=connector, threaded=False)
+bot = TelegramConnector(os.getenv("BOT_TOKEN", "SOMETOKEN"))
 
 script = {
-    GLOBAL: {TRANSITIONS: {("pics", "ask_picture"): bot.cnd.message_handler(commands=["start"])}},
     "root": {
         "start": {RESPONSE: Response(text=""), TRANSITIONS: {("pics", "ask_picture"): cnd.true()}},
         "fallback": {
-            RESPONSE: Response(text="Final node reached, send any message to restart."),
-            TRANSITIONS: {("pics", "ask_picture"): cnd.true()},
+            RESPONSE: "Finishing test, send /restart command to restart",
+            TRANSITIONS: {("pics", "ask_picture"): bot.cnd.message_handler(commands=["start", "restart"])},
         },
     },
     "pics": {
@@ -79,29 +79,37 @@ actor = Actor(script, start_label=("root", "start"), fallback_label=("root", "fa
 
 def extract_data(message):
     """A function to extract data with"""
-    photo = message.photo or message.document
-    if not photo:
+    if not message.photo or message.document:
         return
+    photo = message.document or message.photo[-1]
     file = bot.get_file(photo.file_id)
     result = bot.download_file(file.file_path)
-    with open(photo.file_name, "wb+") as new_file:
+    with open("photo.jpg", "wb+") as new_file:
         new_file.write(result)
 
 
 @bot.message_handler(func=lambda msg: True, content_types=content_type_media)
-def handler(update, data: dict):
-    context = data["context"]
+def handler(update):
+    # retrieve or create a context for the user
+    user_id = get_user_id(update)
 
+    context: Context = connector.get(user_id, get_initial_context(user_id))
+    # add newly received user data to the context
+    context = set_state(context, update)  # this step is required for cnd.%_handler conditions to work
+
+    # extract data
     if isinstance(update, types.Message):
         extract_data(update)
 
-    context = actor(context)
-    response = context.last_response
+    # apply the actor
+    updated_context = actor(context)
 
-    # use the universal method that adapts different types to Telegram format
+    # get and send a generic response
+    response = updated_context.last_response
     bot.send_response(update.from_user.id, response)
 
-    data["context"] = context
+    # save the context
+    connector[user_id] = updated_context
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@ from typing import Optional
 
 import df_engine.conditions as cnd
 from df_engine.core import Context, Actor
-from df_engine.core.keywords import TRANSITIONS, RESPONSE, GLOBAL
+from df_engine.core.keywords import TRANSITIONS, RESPONSE
 
 from telebot import types
 from telebot.util import content_type_media
@@ -19,10 +19,9 @@ connector = dict()
 # from dff_db_connector import SqlConnector
 # connector = SqlConnector("SOME_URI")
 
-bot = TelegramConnector(os.getenv("BOT_TOKEN", "SOMETOKEN"), threaded=False)
+bot = TelegramConnector(os.getenv("BOT_TOKEN", "SOMETOKEN"))
 
 script = {
-    GLOBAL: {TRANSITIONS: {("general", "keyboard"): bot.cnd.message_handler(commands=["start", "restart"])}},
     "root": {
         "start": {
             RESPONSE: "",
@@ -30,7 +29,10 @@ script = {
                 ("general", "keyboard"): cnd.true(),
             },
         },
-        "fallback": {RESPONSE: "Finishing test"},
+        "fallback": {
+            RESPONSE: "Finishing test, send /restart command to restart",
+            TRANSITIONS: {("general", "keyboard"): bot.cnd.message_handler(commands=["start", "restart"])},
+        },
     },
     "general": {
         "keyboard": {

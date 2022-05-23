@@ -4,15 +4,15 @@ import sys
 from typing import NamedTuple
 from copy import copy
 
-from df_engine.core.keywords import RESPONSE, TRANSITIONS, GLOBAL
+from df_engine.core.keywords import RESPONSE, TRANSITIONS
 from df_engine.core import Context, Actor
 from df_engine import conditions as cnd
 
 from telebot import types
 from telebot.util import content_type_media
 
-from df_telegram_connector.connector import TelegramConnector, get_user_id, get_initial_context
-from df_telegram_connector.utils import set_state
+from df_telegram_connector.connector import TelegramConnector
+from df_telegram_connector.utils import set_state, get_user_id, get_initial_context
 
 
 connector = dict()
@@ -25,15 +25,14 @@ def doc_is_photo(message):
     return message.document and message.document.mime_type == "image/jpeg"
 
 
-bot = TelegramConnector(os.getenv("BOT_TOKEN", "SOMETOKEN"), threaded=False)
+bot = TelegramConnector(os.getenv("BOT_TOKEN", "SOMETOKEN"))
 
 script = {
-    GLOBAL: {TRANSITIONS: {("pics", "ask_picture"): bot.cnd.message_handler(commands=["start"])}},
     "root": {
         "start": {RESPONSE: "", TRANSITIONS: {("pics", "ask_picture"): cnd.true()}},
         "fallback": {
-            RESPONSE: "Final node reached, send any message to restart.",
-            TRANSITIONS: {("pics", "ask_picture"): cnd.true()},
+            RESPONSE: "Finishing test, send /restart command to restart",
+            TRANSITIONS: {("pics", "ask_picture"): bot.cnd.message_handler(commands=["start", "restart"])},
         },
     },
     "pics": {
@@ -77,12 +76,12 @@ actor = Actor(script, start_label=("root", "start"), fallback_label=("root", "fa
 # you can always create a separate function that will take care of additional tasks.
 def extract_data(message):
     """A function to extract data with"""
-    photo = message.photo or message.document
-    if not photo:
+    if not message.photo or message.document:
         return
+    photo = message.document or message.photo[-1]
     file = bot.get_file(photo.file_id)
     result = bot.download_file(file.file_path)
-    with open(photo.file_name, "wb+") as new_file:
+    with open("photo.jpg", "wb+") as new_file:
         new_file.write(result)
 
 

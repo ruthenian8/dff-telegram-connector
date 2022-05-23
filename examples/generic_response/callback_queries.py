@@ -4,23 +4,23 @@ import sys
 
 import df_engine.conditions as cnd
 from df_engine.core import Context, Actor
-from df_engine.core.keywords import TRANSITIONS, RESPONSE, GLOBAL
+from df_engine.core.keywords import TRANSITIONS, RESPONSE
 
 from telebot.util import content_type_media
 from telebot import types
 
 from df_telegram_connector.connector import TelegramConnector
 from df_telegram_connector.types import TelegramUI, TelegramButton
+from df_telegram_connector.utils import set_state, get_user_id, get_initial_context
 
 from df_generics import Response, Keyboard, Button
 
 connector = dict()
 
-bot = TelegramConnector(token=os.getenv("BOT_TOKEN", "SOMETOKEN"), db_connector=connector, threaded=False)
+bot = TelegramConnector(token=os.getenv("BOT_TOKEN", "SOMETOKEN"))
 
 
 script = {
-    GLOBAL: {TRANSITIONS: {("general", "keyboard"): bot.cnd.message_handler(commands=["start", "restart"])}},
     "root": {
         "start": {
             RESPONSE: Response(text=""),
@@ -29,10 +29,8 @@ script = {
             },
         },
         "fallback": {
-            RESPONSE: Response(text="Finishing test. Type anything to restart."),
-            TRANSITIONS: {
-                ("general", "keyboard"): cnd.true(),
-            },
+            RESPONSE: "Finishing test, send /restart command to restart",
+            TRANSITIONS: {("general", "keyboard"): bot.cnd.message_handler(commands=["start", "restart"])},
         },
     },
     # The reply below uses generic classes.
@@ -105,16 +103,22 @@ actor = Actor(script, start_label=("root", "start"), fallback_label=("root", "fa
 
 @bot.callback_query_handler(func=lambda call: True)
 @bot.message_handler(func=lambda message: True, content_types=content_type_media)
-def dialog_handler(update, data: dict):
-    context = data["context"]
+def dialog_handler(update):
+    # retrieve or create a context for the user
+    user_id = get_user_id(update)
+    context: Context = connector.get(user_id, get_initial_context(user_id))
+    # add newly received user data to the context
+    context = set_state(context, update)  # this step is required for cnd.%_handler conditions to work
 
-    context = actor(context)
-    response = context.last_response
+    # apply the actor
+    updated_context = actor(context)
 
-    # use the universal method that adapts different types to Telegram format
+    # get and send a generic response
+    response = updated_context.last_response
     bot.send_response(update.from_user.id, response)
 
-    data["context"] = context
+    # save the context
+    connector[user_id] = updated_context
 
 
 if __name__ == "__main__":

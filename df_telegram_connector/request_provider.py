@@ -1,4 +1,5 @@
 from functools import partial
+from typing import Any
 
 from telebot import types, logger
 
@@ -15,6 +16,8 @@ try:
     flask_imported = True
 except ImportError:
     flask_imported = False
+    Flask = Any
+    request, abort = None, None
 
 
 class BaseRequestProvider(AbsRequestProvider):

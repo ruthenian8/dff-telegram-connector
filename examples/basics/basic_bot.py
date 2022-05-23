@@ -4,7 +4,7 @@ import sys
 
 import df_engine.conditions as cnd
 from df_engine.core import Context, Actor
-from df_engine.core.keywords import TRANSITIONS, RESPONSE, GLOBAL
+from df_engine.core.keywords import TRANSITIONS, RESPONSE
 
 from telebot import types
 from telebot.util import content_type_media
@@ -18,73 +18,35 @@ connector = dict()
 # from dff_db_connector import SqlConnector
 # connector = SqlConnector("SOME_URI")
 
-bot = TelegramConnector(os.getenv("BOT_TOKEN", "SOMETOKEN"), threaded=False)
+bot = TelegramConnector(os.getenv("BOT_TOKEN", "SOMETOKEN"))
 
-script: dict
-"""
-| The following example demonstrates that you can use any TeleBot condition inside your script.
-| To achieve this, DFFBot provides a cnd namespace with telebot handler equivalents. 
-| Thus, the Actor chooses the next node depending on whether the bot was sent a file, a particular command, etc.
-
-"""
 script = {
-    GLOBAL: {
-        TRANSITIONS: {
-            ("root", "start", 2): bot.cnd.message_handler(commands=["start"]),
-            ("root", "image", 2): bot.cnd.message_handler(content_types=["photo", "sticker"]),
-            ("animals", "have_pets", 2): bot.cnd.message_handler(commands=["pets"]),
-            ("animals", "like_animals", 2): bot.cnd.message_handler(commands=["animals"]),
-        }
-    },
-    "root": {
-        "start": {
-            RESPONSE: "Hi",
-            TRANSITIONS: {
-                ("small_talk", "ask_some_questions"): cnd.exact_match("hi"),
-            },
+    "greeting_flow": {
+        "start_node": {  # This is an initial node, it doesn't need an `RESPONSE`
+            RESPONSE: "",
+            TRANSITIONS: {"node1": cnd.exact_match("Hi")},  # If "Hi" == request of user then we make the transition
         },
-        "fallback": {RESPONSE: "Oops"},
-        "image": {RESPONSE: "Nice image", TRANSITIONS: {("root", "start"): cnd.true()}},
-    },
-    "animals": {
-        "have_pets": {RESPONSE: "do you have pets?", TRANSITIONS: {"what_animal": cnd.exact_match("yes")}},
-        "like_animals": {RESPONSE: "do you like it?", TRANSITIONS: {"what_animal": cnd.exact_match("yes")}},
-        "what_animal": {
-            RESPONSE: "what animals do you have?",
-            TRANSITIONS: {"ask_about_color": cnd.exact_match("bird"), "ask_about_breed": cnd.exact_match("dog")},
+        "node1": {
+            RESPONSE: "Hi, how are you?",  # When the agent goes to node1, we return "Hi, how are you?"
+            TRANSITIONS: {"node2": cnd.regexp(r".*(good|fine|great).*")},
         },
-        "ask_about_color": {RESPONSE: "what color is it"},
-        "ask_about_breed": {
-            RESPONSE: "what is this breed?",
-            TRANSITIONS: {
-                "ask_about_breed": cnd.exact_match("pereat"),
-                "tell_fact_about_breed": cnd.exact_match("bulldog"),
-                "ask_about_training": cnd.exact_match("i do not known"),
-            },
+        "node2": {
+            RESPONSE: "Good. What do you want to talk about?",
+            TRANSITIONS: {"node3": cnd.regexp(r"(music[.!]{0,1}|.*about music[.!]{0,1})")},
         },
-        "tell_fact_about_breed": {
-            RESPONSE: "Bulldogs appeared in England as specialized bull-baiting dogs. ",
+        "node3": {
+            RESPONSE: "Sorry, I can not talk about music now.",
+            TRANSITIONS: {"node4": cnd.exact_match("Ok, goodbye.")},
         },
-        "ask_about_training": {RESPONSE: "Do you train your dog? "},
-    },
-    "small_talk": {
-        "ask_some_questions": {
-            RESPONSE: "how are you",
-            TRANSITIONS: {
-                "ask_talk_about": cnd.exact_match("fine"),
-                ("animals", "like_animals"): cnd.exact_match("let's talk about animals"),
-            },
+        "node4": {RESPONSE: "bye", TRANSITIONS: {"node1": cnd.regexp(r".*(restart|start|start again).*")}},
+        "fallback_node": {  # We get to this node if an error occurred while the agent was running
+            RESPONSE: "Ooops",
+            TRANSITIONS: {"node1": cnd.true()},
         },
-        "ask_talk_about": {
-            RESPONSE: "what do you want to talk about",
-            TRANSITIONS: {
-                ("animals", "like_animals"): cnd.exact_match("dog"),
-            },
-        },
-    },
+    }
 }
 
-actor = Actor(script, start_label=("root", "start"), fallback_label=("root", "fallback"))
+actor = Actor(script, start_label=("greeting_flow", "start_node"), fallback_label=("greeting_flow", "fallback_node"))
 
 
 # The content_type parameter is set to the `content_type_media` constant, so that the bot can reply to images, stickers, etc.

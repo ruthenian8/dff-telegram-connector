@@ -8,16 +8,13 @@ Connector
 
 """
 from pathlib import Path
-from typing import MutableMapping, Optional, Union
-from pydantic import BaseModel
+from typing import Union
 
 from telebot import types, TeleBot
-from telebot.handler_backends import BaseMiddleware
-from telebot.util import update_types
 
 from df_engine.core import Context, Actor
 
-from .utils import get_initial_context, get_user_id, set_state, partialmethod, open_io, close_io
+from .utils import partialmethod, open_io, close_io
 from .types import TelegramResponse
 
 import df_generics
@@ -25,31 +22,12 @@ import df_generics
 
 class TelegramConnector(TeleBot):
     """
-
-    Parameters
-    -----------
-
-    db_connector: :py:class:`~typing.MutableMapping`
-        | Any :py:class:`~typing.MutableMapping`-like object that supports setting, getting and deleting items.
-        | Note that this argument is keyword-only.
-
-        | Passing this parameter to the constructor enables the :py:class:`~DatabaseMiddleware`.
-        | Refer to the docs and library examples to learn about this feature.
-
-        | In the release version you will be able to use the `df-db-connector` library
-        | that adapts many kinds of database connectors to this interface.
-
+    This class inherits from `Telebot` and implements dff-specific functionality, including
     """
 
-    def __init__(self, *args, db_connector: Optional[MutableMapping] = None, **kwargs):
-        use_middleware = db_connector is not None
-        super().__init__(*args, use_class_middlewares=use_middleware, **kwargs)
-        self._connector = None
-        self.cnd = CndNamespace(self)
-        if db_connector is not None:
-            self._connector = db_connector
-            conn: MutableMapping = self._connector
-            self.setup_middleware(DatabaseMiddleware(conn))
+    def __init__(self, token, threaded=False, parse_mode=None, skip_pending=False, *args, **kwargs):
+        super().__init__(token, threaded=False, parse_mode=parse_mode, skip_pending=skip_pending, *args, **kwargs)
+        self.cnd = ConditionNamespace(self)
 
     def send_response(
         self, chat_id: Union[str, int], response: Union[str, dict, df_generics.Response, TelegramResponse]
@@ -116,7 +94,7 @@ class TelegramConnector(TeleBot):
         )
 
 
-class CndNamespace:
+class ConditionNamespace:
     """
     This class includes methods that produce df_engine conditions based on pytelegrambotapi updates.
 
@@ -192,41 +170,3 @@ class CndNamespace:
     my_chat_member_handler = partialmethod(handler, target_type=types.ChatMemberUpdated)
 
     chat_join_request_handler = partialmethod(handler, target_type=types.ChatJoinRequest)
-
-
-class DatabaseMiddleware(BaseMiddleware):
-    """
-    | DatabaseMiddleware is an optional extension to the :py:class:`~df_telegram_connector.connector.TelegramConnector`.
-    | It encapsulates the context retrieval and context saving operations.
-    | The context is passed to the decorated handler function with the :py:obj:`data` variable,
-    | as suggested by the pytelegrambotapi documentation.
-
-    | You needn't create an instance of this class manually, as it will get instantiated automatically,
-    | if you pass the `db_connector` parameter to :py:class:`~df_telegram_connector.connector.TelegramConnector`.
-
-    .. code-block:: python
-
-        connector = dict()
-        bot = TelegramConnector(token=token, db_connector=connector)
-
-    The proper usage of this feature is documented in library examples.
-
-    """
-
-    def __init__(self, db_connector: MutableMapping) -> None:
-        self.update_types = update_types
-        self._connector = db_connector
-
-    def pre_process(self, update, data: dict):
-        user_id = get_user_id(update)
-        context = self._connector.get(user_id, get_initial_context(user_id))
-        context = set_state(context, update)
-
-        data["context"] = context
-
-    def post_process(self, update, data: dict, exception=None):
-        if exception:
-            print(exception)
-
-        user_id = get_user_id(update)
-        self._connector[user_id] = data["context"]
