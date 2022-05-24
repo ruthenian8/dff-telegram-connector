@@ -5,7 +5,7 @@ import os
 import pytest
 
 sys.path.insert(0, "../")
-from examples.basics.basic_bot import bot, actor
+from examples.no_runner.basic_bot import bot, actor
 
 for variable in ["BOT_TOKEN"]:
     if variable not in os.environ:

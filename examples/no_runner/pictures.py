@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
+"""
+This module demonstrates how to use the TelegramConnector without the df_runner add-on. 
+This approach remains much closer to the usual workflow of pytelegrambotapi developers, so go for it
+if you need a quick prototype or have no interest in using the df_runner. 
+"""
 import os
 import sys
-from typing import NamedTuple
-from copy import copy
 
 from df_engine.core.keywords import RESPONSE, TRANSITIONS
 from df_engine.core import Context, Actor
@@ -76,7 +79,7 @@ actor = Actor(script, start_label=("root", "start"), fallback_label=("root", "fa
 # you can always create a separate function that will take care of additional tasks.
 def extract_data(message):
     """A function to extract data with"""
-    if not message.photo or message.document:
+    if not message.photo and not message.document:
         return
     photo = message.document or message.photo[-1]
     file = bot.get_file(photo.file_id)
@@ -109,4 +112,12 @@ def handler(update):
 
 
 if __name__ == "__main__":
-    bot.infinity_polling()
+    if "BOT_TOKEN" not in os.environ:
+        print("BOT_TOKEN variable needs to be set to continue")
+        sys.exit(1)
+
+    try:
+        bot.infinity_polling()
+    except KeyboardInterrupt:
+        print("Stopping bot")
+        sys.exit(0)

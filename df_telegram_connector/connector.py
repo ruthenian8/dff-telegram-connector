@@ -22,7 +22,21 @@ import df_generics
 
 class TelegramConnector(TeleBot):
     """
-    This class inherits from `Telebot` and implements dff-specific functionality, including
+    This class inherits from `Telebot` and implements dff-specific functionality, including script conditions
+    and sending generic responses.
+
+    Parameters
+    ----------
+
+    token: str
+        A Telegram API bot token.
+    threaded: bool
+        This parameter is currently deprecated for the sake of compatibility with `df_runner`.
+        We plan to add support for the threaded polling mode in the future.
+    args:
+        The rest of the parameters exactly matches those of the `Telebot` class. See the pytelegrambotapi docs
+        for more info: `link <https://github.com/eternnoir/pyTelegramBotAPI#telebot>`_ .
+
     """
 
     def __init__(self, token, threaded=False, parse_mode=None, skip_pending=False, *args, **kwargs):
@@ -33,7 +47,7 @@ class TelegramConnector(TeleBot):
         self, chat_id: Union[str, int], response: Union[str, dict, df_generics.Response, TelegramResponse]
     ):
         """
-        Cast the `response` argument to the :py:class:`~TelegramResponse` type and send it.
+        Cast the `response` argument to the :py:class:`~df_telegram_connector.types.TelegramResponse` type and send it.
         The order is that the media are sent first, after which the marked-up text message is sent.
 
         Parameters

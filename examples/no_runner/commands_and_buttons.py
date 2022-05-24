@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+"""
+This module demonstrates how to use the TelegramConnector without the df_runner add-on. 
+This approach remains much closer to the usual workflow of pytelegrambotapi developers, so go for it
+if you need a quick prototype or have no interest in using the df_runner. 
+"""
 import os
 import sys
 from typing import Optional

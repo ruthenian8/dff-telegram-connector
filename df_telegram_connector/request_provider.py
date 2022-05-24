@@ -1,5 +1,13 @@
+"""
+Request Provider
+*****************
+
+This module contains several variations of the `RequestProvider` class that can be used 
+to combine :py:class:`~df_telegram_connector.connector.TelegramConnector` 
+together with the `df_runner` add-on.
+"""
 from functools import partial
-from typing import Any
+from typing import Any, Optional
 
 from telebot import types, logger
 
@@ -21,6 +29,18 @@ except ImportError:
 
 
 class BaseRequestProvider(AbsRequestProvider):
+    """
+    Abstract class for Telegram request providers.
+    Subclass it, or use one of the child classes below.
+
+    Parameters
+    ----------
+
+    bot: :py:class:`~df_telegram_connector.connector.TelegramConnector`
+        An instance of :py:class:`~df_telegram_connector.connector.TelegramConnector`.
+        Note that passing a regular `Telebot` instance will result in an error.
+    """
+
     def __init__(self, bot: TelegramConnector):
         self.bot = bot
 
@@ -47,6 +67,17 @@ class PollingRequestProvider(BaseRequestProvider):
     """
     | Class for compatibility with df_runner. Retrieves updates by polling.
     | Multi-threaded polling is currently not supported, but will be implemented in the future.
+
+    Parameters
+    ----------
+    bot: :py:class:`~df_telegram_connector.connector.TelegramConnector`
+        An instance of :py:class:`~df_telegram_connector.connector.TelegramConnector`.
+        Note that passing a regular `Telebot` instance will result in an error.
+    args:
+        The rest of the parameters is equal to those of the `polling` method of a regular `Telebot`.
+        See the pytelegrambotapi docs for more info:
+        `link <https://github.com/eternnoir/pyTelegramBotAPI#telebot>`_ .
+
     """
 
     def __init__(self, bot: TelegramConnector, interval=3, allowed_updates=None, timeout=20, long_polling_timeout=20):
@@ -79,7 +110,29 @@ class PollingRequestProvider(BaseRequestProvider):
 
 
 class FlaskRequestProvider(BaseRequestProvider):
-    """Class for compatibility with df_runner. Retrieves updates from post json requests."""
+    """
+    Class for compatibility with df_runner. Retrieves updates from post json requests.
+
+    Parameters
+    ----------
+    bot: :py:class:`~df_telegram_connector.connector.TelegramConnector`
+        An instance of :py:class:`~df_telegram_connector.connector.TelegramConnector`.
+        Note that passing a regular `Telebot` instance will result in an error.
+    app: :py:class:`~flask.Flask`
+        An instance of a `Flask` application. It may have any number of endpoints,
+        but the endpoint you pass to this constructor should be reserved.
+    endpoint: str
+        The endpoint to which the webhook is bound. Like any flask endpoint,
+        it should always be prefixed with a forward slash ("/").
+    host: str = 'localhost'
+        The host IP.
+    port: int = 8443
+        The port of the app.
+    full_uri: Optional[str] = None
+        Setting up a webhook requires a public IP that is accessible by https. If you are hosting
+        your application, this is where you pass the full public URL of your webhook.
+
+    """
 
     def __init__(
         self,
@@ -88,7 +141,7 @@ class FlaskRequestProvider(BaseRequestProvider):
         host: str = "localhost",
         port: int = 8443,
         endpoint: str = "/dff-bot",
-        full_uri: str = None,
+        full_uri: Optional[str] = None,
     ):
         if not flask_imported:
             raise ModuleNotFoundError("Flask is not installed")

@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+"""
+The replies below use generic classes.
+Using generic responses, you can use send local files as well as links to external ones.
+"""
 import os
 import sys
 
@@ -11,6 +15,9 @@ from telebot import types
 
 from df_telegram_connector.connector import TelegramConnector
 from df_telegram_connector.utils import set_state, get_user_id, get_initial_context
+from df_telegram_connector.request_provider import PollingRequestProvider
+
+from df_runner import ScriptRunner
 
 from df_generics import Response, Image, Attachments
 
@@ -20,8 +27,6 @@ def doc_is_photo(message: types.Message):
 
 
 my_image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "kitten.jpg")
-
-connector = dict()
 
 bot = TelegramConnector(os.getenv("BOT_TOKEN", "SOMETOKEN"))
 
@@ -74,47 +79,34 @@ script = {
     },
 }
 
-actor = Actor(script, start_label=("root", "start"), fallback_label=("root", "fallback"))
 
-
-def extract_data(message):
+def extract_data(ctx: Context, actor: Actor):
     """A function to extract data with"""
-    if not message.photo or message.document:
-        return
+    message = ctx.framework_states["TELEGRAM_CONNECTOR"].get("data")
+    if not message or (not message.photo and not message.document):
+        return ctx
     photo = message.document or message.photo[-1]
     file = bot.get_file(photo.file_id)
     result = bot.download_file(file.file_path)
     with open("photo.jpg", "wb+") as new_file:
         new_file.write(result)
+    return ctx
 
 
-@bot.message_handler(func=lambda msg: True, content_types=content_type_media)
-def handler(update):
-    # retrieve or create a context for the user
-    user_id = get_user_id(update)
+provider = PollingRequestProvider(bot=bot)
 
-    context: Context = connector.get(user_id, get_initial_context(user_id))
-    # add newly received user data to the context
-    context = set_state(context, update)  # this step is required for cnd.%_handler conditions to work
-
-    # extract data
-    if isinstance(update, types.Message):
-        extract_data(update)
-
-    # apply the actor
-    updated_context = actor(context)
-
-    # get and send a generic response
-    response = updated_context.last_response
-    bot.send_response(update.from_user.id, response)
-
-    # save the context
-    connector[user_id] = updated_context
-
+runner = ScriptRunner(
+    script=script,
+    start_label=("root", "start"),
+    fallback_label=("root", "fallback"),
+    db=dict(),
+    request_provider=provider,
+    pre_annotators=[extract_data],
+)
 
 if __name__ == "__main__":
     if "BOT_TOKEN" not in os.environ:
         print("BOT_TOKEN variable needs to be set to continue")
         sys.exit(1)
 
-    bot.infinity_polling()
+    runner.start()

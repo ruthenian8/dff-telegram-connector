@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+"""
+This module demonstrates how to use the TelegramConnector without the df_runner add-on. 
+This approach remains much closer to the usual workflow of pytelegrambotapi developers, so go for it
+if you need a quick prototype or have no interest in using the df_runner. 
+"""
 import os
 import sys
 
@@ -59,11 +64,6 @@ def dialog_handler(update):
     | only one handler is sufficient to run the bot.
     | If you need to need to process other updates in addition to messages,
     | just stack the corresponding handler decorators on top of the function.
-
-    | The suggested way of extending the functionality is to expand the if-statement below.
-    | In doing so you will be able to send an arbitrary number of messages or files to the user
-    | depending on the type of response produced by the :py:class:`~df_engine.core.Actor`.
-    | For instance, when it returns a :py:class:`dict`, the keys can be mapped to different messaging methods.
 
     Parameters
     -----------
