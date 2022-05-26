@@ -19,10 +19,10 @@ from df_telegram_connector.connector import TelegramConnector
 from df_telegram_connector.utils import set_state, get_user_id, get_initial_context
 
 
-connector = dict()
+db = dict()
 # Optionally, you can use database connection implementations from the dff ecosystem
-# from dff_db_connector import SqlConnector
-# connector = SqlConnector("SOME_URI")
+# from df_db_connector import SqlConnector
+# db = SqlConnector("SOME_URI")
 
 bot = TelegramConnector(os.getenv("BOT_TOKEN", "SOMETOKEN"))
 
@@ -79,7 +79,7 @@ def handler(update):
 
     # retrieve or create a context for the user
     user_id = get_user_id(update)
-    context: Context = connector.get(user_id, get_initial_context(user_id))
+    context: Context = db.get(user_id, get_initial_context(user_id))
 
     # add newly received user data to the context
     context = set_state(context, update)
@@ -88,7 +88,7 @@ def handler(update):
     context = actor(context)
 
     # save the context
-    connector[user_id] = context
+    db[user_id] = context
 
     response = context.last_response
     if isinstance(response, str):

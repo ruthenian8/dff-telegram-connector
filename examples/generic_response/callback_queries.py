@@ -10,15 +10,12 @@ import os
 import sys
 
 import df_engine.conditions as cnd
-from df_engine.core import Context, Actor
 from df_engine.core.keywords import TRANSITIONS, RESPONSE
 
-from telebot.util import content_type_media
 from telebot import types
 
 from df_telegram_connector.connector import TelegramConnector
 from df_telegram_connector.types import TelegramUI, TelegramButton
-from df_telegram_connector.utils import set_state, get_user_id, get_initial_context
 from df_telegram_connector.request_provider import PollingRequestProvider
 
 from df_runner import ScriptRunner
@@ -46,6 +43,8 @@ script = {
             RESPONSE: Response(
                 **{
                     "text": "Starting test! What's 9 + 10?",
+                    # Here, we use a generic keyboard class that will be compatible with any other dff add-on.
+                    # Compare with the next script node.
                     "ui": Keyboard(buttons=[Button(text="19", payload="19"), Button(text="21", payload="21")]),
                 }
             ),
@@ -58,6 +57,8 @@ script = {
             RESPONSE: Response(
                 **{
                     "text": "Question: What's 2 + 2?",
+                    # In this case, we use telegram-specific classes.
+                    # They derive from the generic ones and include more options, e.g. simple keyboard or inline keyboard.
                     "ui": TelegramUI(
                         buttons=[TelegramButton(text="5", payload="5"), TelegramButton(text="4", payload="4")],
                         is_inline=False,

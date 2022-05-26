@@ -18,10 +18,10 @@ from df_telegram_connector.connector import TelegramConnector
 from df_telegram_connector.utils import set_state, get_user_id, get_initial_context
 
 
-connector = dict()
+db = dict()
 # Optionally, you can use database connection implementations from the dff ecosystem.
-# from dff_db_connector import SqlConnector
-# connector = SqlConnector("SOME_URI")
+# from df_db_connector import SqlConnector
+# db = SqlConnector("SOME_URI")
 
 
 def doc_is_photo(message):
@@ -91,7 +91,7 @@ def extract_data(message):
 @bot.message_handler(func=lambda msg: True, content_types=content_type_media)
 def handler(update):
     user_id = get_user_id(update)
-    context: Context = connector.get(user_id, get_initial_context(user_id))
+    context: Context = db.get(user_id, get_initial_context(user_id))
     context = set_state(context, update)
 
     # Extract data if present
@@ -100,7 +100,7 @@ def handler(update):
 
     context = actor(context)
 
-    connector[user_id] = context
+    db[user_id] = context
 
     response = context.last_response
     if isinstance(response, str):

@@ -74,7 +74,7 @@ class PollingRequestProvider(BaseRequestProvider):
         An instance of :py:class:`~df_telegram_connector.connector.TelegramConnector`.
         Note that passing a regular `Telebot` instance will result in an error.
     args:
-        The rest of the parameters is equal to those of the `polling` method of a regular `Telebot`.
+        The rest of the parameters are equal to those of the `polling` method of a regular `Telebot`.
         See the pytelegrambotapi docs for more info:
         `link <https://github.com/eternnoir/pyTelegramBotAPI#telebot>`_ .
 

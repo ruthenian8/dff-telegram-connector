@@ -10,11 +10,9 @@ import df_engine.conditions as cnd
 from df_engine.core import Context, Actor
 from df_engine.core.keywords import TRANSITIONS, RESPONSE
 
-from telebot.util import content_type_media
 from telebot import types
 
 from df_telegram_connector.connector import TelegramConnector
-from df_telegram_connector.utils import set_state, get_user_id, get_initial_context
 from df_telegram_connector.request_provider import PollingRequestProvider
 
 from df_runner import ScriptRunner
@@ -83,7 +81,7 @@ script = {
 def extract_data(ctx: Context, actor: Actor):
     """A function to extract data with"""
     message = ctx.framework_states["TELEGRAM_CONNECTOR"].get("data")
-    if not message or (not message.photo and not message.document):
+    if not message or (not message.photo and not doc_is_photo(message)):
         return ctx
     photo = message.document or message.photo[-1]
     file = bot.get_file(photo.file_id)
